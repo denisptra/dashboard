@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAMRI SBU Transbusway — TV Command Center & Produktivitas Armada</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+          },
+          colors: {
+            damri: {
+              blue: '#005BAC',
+              darkBlue: '#003E78',
+              yellow: '#FFD100',
+              amber: '#F39200',
+              navy: '#070D19',
+              card: '#0F172A'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-display {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
+    .tv-card {
+      transition: all 0.2s ease-in-out;
+    }
+    .tv-card:hover {
+      transform: translateY(-2px);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.5);
+      border-radius: 9999px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+    .live-dot {
+      animation: pulseGlow 2s infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#070D19] text-slate-100 dark:bg-[#070D19] dark:text-slate-100 min-h-screen transition-colors duration-300" id="appBody">
+
+  <!-- TOP COMMAND HEADER BAR -->
+  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-[#0B1325]/95 backdrop-blur-md px-4 lg:px-6 py-3">
+    <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#005BAC] to-[#003E78] flex items-center justify-center shadow-lg shadow-blue-900/40 border border-blue-400/30">
+          <span class="font-display font-extrabold text-lg tracking-tighter text-[#FFD100]">D</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-[#FFD100] text-slate-950">SBU TRANSBUSWAY</span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 live-dot"></span>
+              TV MONITOR DISPLAY
+            </span>
+          </div>
+          <h1 class="font-display font-extrabold text-base sm:text-xl tracking-tight text-white">
+            DASHBOARD PRODUKTIVITAS &amp; BDMI ARMADA DAMRI
+          </h1>
+        </div>
+      </div>
+
+      <!-- Navigation View Tabs -->
+      <nav class="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800" aria-label="View Tabs">
+        <button type="button" id="tabBtn-overview" data-tab="overview" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-[#005BAC] text-white shadow">
+          1. Monitor TV Utama (16:9)
+        </button>
+        <button type="button" id="tabBtn-daily" data-tab="daily" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          2. Tren Harian (Agu 2026)
+        </button>
+        <button type="button" id="tabBtn-monthly" data-tab="monthly" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          3. Rekap Bulanan &amp; PKS (2024–2026)
+        </button>
+        <button type="button" id="tabBtn-leaderboard" data-tab="leaderboard" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60">
+          4. Leaderboard Bus, Koridor &amp; BDMI
+        </button>
+      </nav>
+
+      <!-- Global Controls: Profit Mode, KM Mode, Auto-Rotate, Theme, Clock -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Profit Formula Selector -->
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5">
+          <label for="profitModeSelect" class="text-[11px] font-semibold text-slate-400 uppercase">Laba:</label>
+          <select id="profitModeSelect" class="bg-transparent text-xs font-bold text-[#FFD100] focus:outline-none cursor-pointer">
+            <option value="opsi_b" class="bg-slate-900 text-white" selected>Opsi B: Dikurangi Biaya Ops + TKO (Rp 34,74 M)</option>
+            <option value="opsi_a" class="bg-slate-900 text-white">Opsi A: Dikurangi Biaya Langsung Saja (Rp 37,47 M)</option>
+            <option value="opsi_c" class="bg-slate-900 text-white">Opsi C: Selisih Bersih Setelah APM (Rp 28,41 M)</option>
+          </select>
+        </div>
+
+        <!-- KM Mode Selector -->
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5">
+          <label for="kmModeSelect" class="text-[11px] font-semibold text-slate-400 uppercase">Jarak:</label>
+          <select id="kmModeSelect" class="bg-transparent text-xs font-bold text-sky-400 focus:outline-none cursor-pointer">
+            <option value="baku" class="bg-slate-900 text-white" selected>KM Baku Kontrak (1,97 Jt km)</option>
+            <option value="odo" class="bg-slate-900 text-white">KM Real Odometer (2,21 Jt km)</option>
+          </select>
+        </div>
+
+        <!-- Auto Rotate TV Button -->
+        <button type="button" id="autoRotateBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300 hover:border-[#FFD100] hover:text-[#FFD100] transition flex items-center gap-1.5" title="Putar otomatis antar layar setiap 12 detik untuk layar TV">
+          <span id="autoRotateIcon">▶</span>
+          <span id="autoRotateText">Auto-TV: OFF</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button type="button" id="themeToggleBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 transition" title="Ganti Mode Gelap TV / Terang OpsFlow">
+          <span id="themeToggleText">☀️ Mode Terang</span>
+        </button>
+
+        <!-- Live Clock -->
+        <div class="hidden xl:flex flex-col items-end pl-2 border-l border-slate-800">
+          <span id="liveClockTime" class="font-mono font-bold text-sm text-white">11:47:15 WIB</span>
+          <span id="liveClockDate" class="text-[11px] text-slate-400">Periode Aktif: Agu 2026</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-[1920px] mx-auto px-4 lg:px-6 py-4 space-y-5">
+
+    <!-- GLOBAL FILTER BAR FOR POOL / LAYANAN (APPLIES TO OVERVIEW) -->
+    <section class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800/90 rounded-2xl px-4 py-2.5">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Filter Pool / Kontrak (Agustus 2026):</span>
+        <div class="flex flex-wrap items-center gap-1.5" id="poolFilterGroup">
+          <button type="button" data-pool="ALL" class="pool-chip px-3 py-1 rounded-full text-xs font-bold bg-[#005BAC] text-white">Semua Pool (6 Pool Aktif)</button>
+          <button type="button" data-pool="KLD 70" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Klender 70 (PKS 200)</button>
+          <button type="button" data-pool="CPT" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Ciputat (PKS 200)</button>
+          <button type="button" data-pool="PPR 60" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Pupar 60 (PKS 60)</button>
+          <button type="button" data-pool="CWG 50" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Cawang 50 (PKS 200)</button>
+          <button type="button" data-pool="KLD" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Klender 30 (PKS 30)</button>
+          <button type="button" data-pool="PPR 26" class="pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Pupar 26 (PKS 26)</button>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span>Sumber Data:
+          <a href="https://drive.google.com/file/d/1qfpenB-4f3qF5QWhYsfy_F4b-NoEHEVA/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline font-medium">08. Report Produktifitas Agustus (Final).xlsm</a>
+          &amp;
+          <a href="https://drive.google.com/file/d/1aypRom3XXhhsUmFQ9JB2CPjeMQzdU6km/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline font-medium">Dashboard Produktifitas.xlsx</a>
+        </span>
+      </div>
+    </section>
+
+    <!-- TOP 6 EXECUTIVE KPI CARDS (ALWAYS VISIBLE FOR TV AT-A-GLANCE READABILITY) -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5" aria-label="Indikator Utama KPI">
+      <!-- KPI 1: Total Pendapatan -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-slate-800 p-4 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-[#005BAC]/15 rounded-bl-full pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Pendapatan</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-500/20 text-sky-300" id="kpi1Badge">Reg + Amari</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight" id="kpi1Value">Rp 39,69 M</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi1Sub">Rp 39.688.987.295</span>
+          <span class="text-emerald-400 font-semibold" id="kpi1Avg">Rp 1,28 M/hr</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Laba Operasional -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-emerald-500/30 p-4 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-bl-full pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-300" id="kpi2Title">Laba Operasional (Opsi B)</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300" id="kpi2Margin">Margin 87,5%</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-emerald-400 tracking-tight" id="kpi2Value">Rp 34,74 M</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi2Sub">Biaya: Rp 4,95 M</span>
+          <span class="text-slate-300 font-medium" id="kpi2Note">BOPO 12,5%</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Total Jarak Tempuh -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-slate-800 p-4 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400" id="kpi3Title">Total KM Tempuh (Baku)</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-sky-500/20 text-sky-300" id="kpi3Badge">92,2% Prod</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight" id="kpi3Value">1,97 Jt km</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi3Sub">Prod: 1.816.946 km</span>
+          <span class="text-amber-400 font-medium" id="kpi3Emp">Emp: 153.343 km</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: Total Trip -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-slate-800 p-4 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Ritase / Trip</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-[#FFD100]" id="kpi4Badge">94,2% Reguler</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-[#FFD100] tracking-tight" id="kpi4Value">99.497 Trip</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi4Sub">Reg: 93.736 | Amr: 5.761</span>
+          <span class="text-slate-300 font-semibold" id="kpi4Avg">3.210/hr</span>
+        </div>
+      </div>
+
+      <!-- KPI 5: Kesiapan & Produktivitas Bus -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-slate-800 p-4 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rata-rata KM / Bus</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300" id="kpi5Badge">↑ Di Atas Target</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight" id="kpi5Value">222,00 km</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi5Sub">SO: 8.875 Hari-Bus</span>
+          <span class="text-sky-400 font-semibold" id="kpi5Target">Target: 215 km</span>
+        </div>
+      </div>
+
+      <!-- KPI 6: Efisiensi Energi EV -->
+      <div class="tv-card rounded-2xl bg-slate-900/95 border border-slate-800 p-4 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Rasio Energi EV</span>
+          <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300" id="kpi6Badge">Target ≥ 0,90</span>
+        </div>
+        <div class="font-display font-extrabold text-2xl sm:text-3xl text-sky-400 tracking-tight" id="kpi6Value">0,94 km/kWh</div>
+        <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span id="kpi6Sub">2.352.875 kWh</span>
+          <span class="text-slate-300 font-medium" id="kpi6Baku">Baku: 0,84</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 1: MONITOR TV UTAMA (16:9 ALL-IN-ONE WALL DISPLAY)             -->
+    <!-- =================================================================== -->
+    <section id="view-overview" class="space-y-4">
+      <!-- Middle Row: Main Trend Chart (Left 7 cols) + Pool Comparison Chart (Right 5 cols) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- Panel 1: Tren Pendapatan vs Biaya & Laba -->
+        <div class="lg:col-span-7 rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Panel Utama 1 • Kinerja Finansial</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white" id="overviewTrendTitle">
+                Tren Harian Pendapatan, Biaya &amp; Laba Operasional (1–31 Agustus 2026)
+              </h2>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <button type="button" id="trendScopeDailyBtn" class="px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white">Harian (1–31 Agu)</button>
+              <button type="button" id="trendScopeMonthlyBtn" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white">Bulanan (Jan–Agu 2026)</button>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="overviewTrendChart"></canvas>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+            <span>📌 <strong class="text-white">Puncak Harian:</strong> Selasa, 25 Agu 2026 (<strong class="text-[#FFD100]">Rp 1,34 Miliar</strong> | 66.305 km | 3.367 trip)</span>
+            <span>📌 <strong class="text-white">Titik Terendah:</strong> Selasa, 4 Agu 2026 (<strong class="text-sky-300">Rp 1,25 Miliar</strong> | 61.940 km)</span>
+          </div>
+        </div>
+
+        <!-- Panel 2: Perbandingan Produktivitas & Pendapatan per Pool -->
+        <div class="lg:col-span-5 rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#FFD100]">Panel Utama 2 • Komparasi 6 Pool Aktif</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white">
+                Kontribusi Pendapatan &amp; Rata-rata KM/Bus per Pool
+              </h2>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <button type="button" id="poolMetricPendBtn" class="px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white">Pendapatan &amp; Laba</button>
+              <button type="button" id="poolMetricKmBtn" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white">Rata-rata KM vs Target</button>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="overviewPoolChart"></canvas>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+            <span>🏆 <strong class="text-white">Pendapatan Tertinggi:</strong> Klender 70 (<strong class="text-emerald-400">Rp 9,22 M</strong>) &amp; Ciputat (<strong class="text-emerald-400">Rp 9,00 M</strong>)</span>
+            <span>⚡ <strong class="text-white">Utilisasi Tertinggi:</strong> Klender 30 (<strong class="text-[#FFD100]">234,35 km/bus</strong>)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: 3 Cards (Energy Efficiency, PKS Contract Quota Progress, Top 5 Leaderboard) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- Panel 3: Efisiensi Energi EV per Pool -->
+        <div class="lg:col-span-4 rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-col justify-between">
+          <div class="mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Panel 3 • Efisiensi Daya Listrik (EV)</span>
+            <h3 class="font-display font-bold text-base text-white">Rasio Konsumsi Energi (km/kWh) vs Target 0,90</h3>
+          </div>
+          <div class="relative h-60 w-full">
+            <canvas id="overviewEnergyChart"></canvas>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>⚠️ <strong class="text-amber-400">Perhatian:</strong> Pool Ciputat (<strong class="text-amber-400">0,87 km/kWh</strong>) di bawah target 0,90</span>
+            <span class="text-emerald-400 font-semibold">5 Pool ≥ Target</span>
+          </div>
+        </div>
+
+        <!-- Panel 4: Serapan Kuota KM Kontrak PKS (Pengganti 8 Doughnut Chart Lama) -->
+        <div class="lg:col-span-4 rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Panel 4 • Kuota Kontrak PKS (Sheet Dash)</span>
+              <span class="text-[11px] font-semibold text-slate-400">Total Kontrak: 221,99 Jt km</span>
+            </div>
+            <h3 class="font-display font-bold text-base text-white mb-3">Progres Capaian KM vs Sisa Kontrak EV</h3>
+            <div class="space-y-3.5" id="pksQuotaContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>💡 Menggantikan 8 Doughnut Chart di Excel agar terbaca jelas di TV</span>
+            <span class="text-sky-300 font-semibold">Total Cap: 29,10 Jt km</span>
+          </div>
+        </div>
+
+        <!-- Panel 5: Leaderboard Top 5 Armada & Top 5 Koridor -->
+        <div class="lg:col-span-4 rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-[#FFD100]">Panel 5 • Top Performer Agu 2026</span>
+                <h3 class="font-display font-bold text-base text-white" id="miniLeaderTitle">Top 5 Armada Bus Terbaik (KM &amp; Pendapatan)</h3>
+              </div>
+              <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <button type="button" id="miniLeaderBusBtn" class="px-2 py-1 rounded text-[11px] font-bold bg-[#005BAC] text-white">Top 5 Bus</button>
+                <button type="button" id="miniLeaderKorBtn" class="px-2 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white">Top 5 Koridor</button>
+              </div>
+            </div>
+            <div id="miniLeaderboardList" class="space-y-2 mt-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Sumber: Sheet <code class="text-slate-300">db_reg</code> + <code class="text-slate-300">db_amr</code> (436 Bus)</span>
+            <button type="button" id="goFullLeaderBtn" class="text-[#FFD100] hover:underline font-semibold">Lihat Top 10 Lengkap →</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: ANALISIS HARIAN AGUSTUS 2026 (TGL 1-31)                     -->
+    <!-- =================================================================== -->
+    <section id="view-daily" class="hidden space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Daily KM Produksi vs Empty + Trip Chart -->
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Operasional Harian • Sheet R_All</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white">Pergerakan KM Produksi, KM Empty &amp; Ritase Harian (1–31 Agu)</h2>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="dailyKmTripChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Daily Cost Structure Chart -->
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Struktur Biaya Harian • Sheet R_All</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white">Komposisi Biaya Langsung (Listrik, Tol, Cuci), TKO &amp; Beban APM</h2>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="dailyCostChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Table with Search & Sort -->
+      <div class="rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 class="font-display font-bold text-base text-white">Tabel Rekapitulasi Harian SBU Transbusway (1–31 Agustus 2026)</h3>
+            <p class="text-xs text-slate-400">Sumber: Sheet <code class="text-sky-300">R_All</code> pada <a href="https://drive.google.com/file/d/1qfpenB-4f3qF5QWhYsfy_F4b-NoEHEVA/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">08. Report Produktifitas Agustus (Final).xlsm</a></p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="dailySearchInput" placeholder="Cari hari atau tanggal (mis. SABTU, 25)..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-sky-400" />
+            <select id="dailySortSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
+              <option value="tgl_asc">Urutkan: Tanggal (1 → 31)</option>
+              <option value="pend_desc">Urutkan: Pendapatan Tertinggi</option>
+              <option value="km_desc">Urutkan: KM Tempuh Tertinggi</option>
+              <option value="trip_desc">Urutkan: Trip Tertinggi</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="sticky top-0 bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Tgl</th>
+                <th class="py-2.5 px-3">Hari</th>
+                <th class="py-2.5 px-3 text-right">SG / SGO / SO</th>
+                <th class="py-2.5 px-3 text-right">Trip</th>
+                <th class="py-2.5 px-3 text-right">KM Tempuh Baku</th>
+                <th class="py-2.5 px-3 text-right">KM Odo</th>
+                <th class="py-2.5 px-3 text-right">Rata2 KM/Bus</th>
+                <th class="py-2.5 px-3 text-right">Pendapatan (Rp)</th>
+                <th class="py-2.5 px-3 text-right">Biaya Langsung</th>
+                <th class="py-2.5 px-3 text-right">TKO Pramudi</th>
+                <th class="py-2.5 px-3 text-right">Laba Sesuai Opsi</th>
+                <th class="py-2.5 px-3 text-right">Rasio Odo</th>
+              </tr>
+            </thead>
+            <tbody id="dailyTableBody" class="divide-y divide-slate-800/70 font-mono">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 3: REKAP BULANAN & KONTRAK PKS (2024 - 2026)                   -->
+    <!-- =================================================================== -->
+    <section id="view-monthly" class="hidden space-y-4">
+      <!-- Filter Bar for Historical Data -->
+      <div class="rounded-2xl bg-slate-900/95 border border-slate-800 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#FFD100]">Filter Rekap Historis • Sheet data &amp; coret</span>
+          <h2 class="font-display font-bold text-base sm:text-lg text-white">Eksplorasi Tren Bulanan &amp; Kontrak PKS (Des 2023 – Agu 2026)</h2>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <label for="histYearSelect" class="text-xs font-semibold text-slate-400">Tahun:</label>
+            <select id="histYearSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white">
+              <option value="2026" selected>2026 (Jan–Agu)</option>
+              <option value="2025">2025 (Jan–Des)</option>
+              <option value="2024">2024 (Jan–Des)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label for="histPksSelect" class="text-xs font-semibold text-slate-400">Kontrak PKS:</label>
+            <select id="histPksSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#FFD100]">
+              <option value="ALL" selected>SEMUA PKS (ALL)</option>
+              <option value="200">PKS 200 (EV Klender 70, Cawang, Ciputat)</option>
+              <option value="60">PKS 60 (EV Pupar 60)</option>
+              <option value="30">PKS 30 (EV Klender 30)</option>
+              <option value="26">PKS 26 (EV Pupar 26)</option>
+              <option value="120">PKS 120 (Solar Cakung/Cawang/Pulogadung)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label for="histAreaSelect" class="text-xs font-semibold text-slate-400">Area/Pool:</label>
+            <select id="histAreaSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-sky-400">
+              <option value="ALL" selected>SEMUA AREA</option>
+              <option value="pupar">Pupar</option>
+              <option value="klender">Klender</option>
+              <option value="cawang">Cawang</option>
+              <option value="ciputat">Ciputat</option>
+              <option value="cakung">Cakung</option>
+              <option value="pulogadung">Pulogadung</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary KPI Strip for Selected Year/PKS/Area -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5" id="histSummaryCards">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Charts for Monthly View -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-7 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <h3 class="font-display font-bold text-base text-white mb-2" id="histChart1Title">Tren Pendapatan vs Biaya Bulanan</h3>
+          <div class="relative h-72 w-full">
+            <canvas id="histRevChart"></canvas>
+          </div>
+        </div>
+        <div class="lg:col-span-5 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <h3 class="font-display font-bold text-base text-white mb-2" id="histChart2Title">Tren KM Tempuh &amp; Rata-rata KM/Bus Bulanan</h3>
+          <div class="relative h-72 w-full">
+            <canvas id="histKmChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 4: LEADERBOARD ARMADA, KORIDOR & SLA BDMI                      -->
+    <!-- =================================================================== -->
+    <section id="view-leaderboard" class="hidden space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Top 10 Armada Table & Bar -->
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#FFD100]">Peringkat Unit Bus • Sheet db_reg &amp; db_amr</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white">Top 10 Nomor Bodi Armada Terbaik (Agustus 2026)</h2>
+            </div>
+          </div>
+          <div class="relative h-64 w-full mb-4">
+            <canvas id="topBusChart"></canvas>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-2.5">#</th>
+                  <th class="py-2 px-2.5">No. Bodi</th>
+                  <th class="py-2 px-2.5">Pool / PKS</th>
+                  <th class="py-2 px-2.5 text-right">Trip</th>
+                  <th class="py-2 px-2.5 text-right">KM Tempuh</th>
+                  <th class="py-2 px-2.5 text-right">Pendapatan</th>
+                  <th class="py-2 px-2.5 text-right">Laba Langsung</th>
+                </tr>
+              </thead>
+              <tbody id="topBusTableBody" class="divide-y divide-slate-800/70 font-mono">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top 10 Koridor Table & Bar -->
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Peringkat Rute • Sheet db_reg, db_amr &amp; R_Kor</span>
+              <h2 class="font-display font-bold text-base sm:text-lg text-white">Top 10 Koridor Produktivitas Tertinggi (Agustus 2026)</h2>
+            </div>
+          </div>
+          <div class="relative h-64 w-full mb-4">
+            <canvas id="topKorChart"></canvas>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-2 px-2.5">#</th>
+                  <th class="py-2 px-2.5">Koridor</th>
+                  <th class="py-2 px-2.5">Rute Utama</th>
+                  <th class="py-2 px-2.5 text-right">Hari-Bus (SO)</th>
+                  <th class="py-2 px-2.5 text-right">Trip</th>
+                  <th class="py-2 px-2.5 text-right">KM Tempuh</th>
+                  <th class="py-2 px-2.5 text-right">Pendapatan</th>
+                </tr>
+              </thead>
+              <tbody id="topKorTableBody" class="divide-y divide-slate-800/70 font-mono">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ringkasan Layanan Reguler vs Amari & Parameter Tarif Kontrak -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Komparasi Layanan • Sheet Reguler vs Amari</span>
+          <h3 class="font-display font-bold text-base text-white mb-3">Perbandingan Layanan Reguler vs Angkutan Malam Hari (Amari) — Agu 2026</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-2.5 px-3">Metrik Operasional</th>
+                  <th class="py-2.5 px-3 text-right">Layanan Reguler (6 Pool)</th>
+                  <th class="py-2.5 px-3 text-right">Layanan Amari (PPR 60 &amp; KLD)</th>
+                  <th class="py-2.5 px-3 text-right">Total SBU Transbusway</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/70 font-mono">
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">Hari-Bus Operasi (SO)</td>
+                  <td class="py-2 px-3 text-right">8.383 hari-bus (94,4%)</td>
+                  <td class="py-2 px-3 text-right">496 hari-bus (5,6%)</td>
+                  <td class="py-2 px-3 text-right font-bold text-white">8.875 hari-bus</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">Total Ritase / Trip</td>
+                  <td class="py-2 px-3 text-right">93.736 trip (94,2%)</td>
+                  <td class="py-2 px-3 text-right">5.761 trip (5,8%)</td>
+                  <td class="py-2 px-3 text-right font-bold text-[#FFD100]">99.497 trip</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">KM Tempuh Baku</td>
+                  <td class="py-2 px-3 text-right">1.865.182,84 km</td>
+                  <td class="py-2 px-3 text-right">105.106,69 km</td>
+                  <td class="py-2 px-3 text-right font-bold text-sky-400">1.970.289,53 km</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">KM Tempuh Real (Odometer)</td>
+                  <td class="py-2 px-3 text-right">2.096.506,00 km</td>
+                  <td class="py-2 px-3 text-right">114.878,00 km</td>
+                  <td class="py-2 px-3 text-right font-bold text-white">2.211.384,00 km</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">Total Pendapatan</td>
+                  <td class="py-2 px-3 text-right">Rp 37.635.033.502</td>
+                  <td class="py-2 px-3 text-right">Rp 2.053.953.793</td>
+                  <td class="py-2 px-3 text-right font-bold text-emerald-400">Rp 39.688.987.295</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">Biaya Langsung (Listrik + Cuci + Tol)</td>
+                  <td class="py-2 px-3 text-right">Rp 2.126.231.779</td>
+                  <td class="py-2 px-3 text-right">Rp 95.896.688</td>
+                  <td class="py-2 px-3 text-right font-bold text-rose-400">Rp 2.222.128.468</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-sans font-medium text-slate-300">Insentif UDJ / TKO Pramudi</td>
+                  <td class="py-2 px-3 text-right">Rp 2.580.434.681</td>
+                  <td class="py-2 px-3 text-right">Rp 144.984.591</td>
+                  <td class="py-2 px-3 text-right font-bold text-amber-400">Rp 2.725.419.272</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 rounded-2xl bg-slate-900/95 border border-slate-800 p-4">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Master Parameter Kontrak • Sheet set &amp; BDMI</span>
+          <h3 class="font-display font-bold text-base text-white mb-3">Konstanta Tarif Rp/KM, Harga Energi, &amp; Capaian Historis BDMI</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-2.5 px-3">Kontrak PKS</th>
+                  <th class="py-2.5 px-3">Pool Operasional</th>
+                  <th class="py-2.5 px-3 text-right">Tarif Rp/KM</th>
+                  <th class="py-2.5 px-3 text-right">Beban APM / KM</th>
+                  <th class="py-2.5 px-3 text-right">Tarif Energi</th>
+                  <th class="py-2.5 px-3 text-right">Rata2 BDMI 2026</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/70 font-mono">
+                <tr>
+                  <td class="py-2 px-3 font-bold text-[#FFD100]">PKS 26 (EV)</td>
+                  <td class="py-2 px-3 font-sans">Pupar 26 (26 Unit)</td>
+                  <td class="py-2 px-3 text-right">Rp 24.047</td>
+                  <td class="py-2 px-3 text-right">Rp 15.049</td>
+                  <td class="py-2 px-3 text-right">Rp 731 / kWh</td>
+                  <td class="py-2 px-3 text-right text-emerald-400 font-bold">105,62%</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-sky-400">PKS 30 (EV)</td>
+                  <td class="py-2 px-3 font-sans">Klender 30 (30 Unit)</td>
+                  <td class="py-2 px-3 text-right">Rp 19.541</td>
+                  <td class="py-2 px-3 text-right">Rp 1.940</td>
+                  <td class="py-2 px-3 text-right">Rp 731 / kWh</td>
+                  <td class="py-2 px-3 text-right text-emerald-400 font-bold">106,87%</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-emerald-400">PKS 60 (EV)</td>
+                  <td class="py-2 px-3 font-sans">Pupar 60 (60 Unit)</td>
+                  <td class="py-2 px-3 text-right">Rp 19.542</td>
+                  <td class="py-2 px-3 text-right">Rp 2.138</td>
+                  <td class="py-2 px-3 text-right">Rp 731 / kWh</td>
+                  <td class="py-2 px-3 text-right text-emerald-400 font-bold">105,47%</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-purple-400">PKS 200 (EV)</td>
+                  <td class="py-2 px-3 font-sans">KLD 70, CWG 50, CPT</td>
+                  <td class="py-2 px-3 text-right">Rp 19.948</td>
+                  <td class="py-2 px-3 text-right">Rp 2.295</td>
+                  <td class="py-2 px-3 text-right">Rp 731 / kWh</td>
+                  <td class="py-2 px-3 text-right text-emerald-400 font-bold">102,59%</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-bold text-amber-400">PKS 120 (Solar)</td>
+                  <td class="py-2 px-3 font-sans">Cakung (Off Agu 2026)</td>
+                  <td class="py-2 px-3 text-right">Rp 14.479</td>
+                  <td class="py-2 px-3 text-right">Rp 0</td>
+                  <td class="py-2 px-3 text-right">Rp 6.800 / L</td>
+                  <td class="py-2 px-3 text-right text-slate-400">N/A (Non-EV)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. VERIFIED DATASETS FROM BOTH EXCEL WORKBOOKS
+    // =========================================================================
+    const DAILY_AUG = [{"tgl":1,"hari":"SABTU","sg":316,"sgo":294,"so":285,"trip":3193,"km_prod":58235.88,"km_emp":4870.08,"km_temp":63105.96,"km_odo":70749.0,"avg_km":221.42,"pend":1271113494.0,"biaya_langsung":68279166.0,"bb":53140666.0,"cuci":3304000.0,"tol":11834500.0,"tko":87353813.0,"apm":202514179.0,"laba_a":1202834328.0,"laba_b":1115480515.0,"laba_c":912966336.0,"rasio_baku":0.868,"rasio_odo":0.973,"kwh":72695.85},{"tgl":2,"hari":"MINGGU","sg":316,"sgo":294,"so":285,"trip":3165,"km_prod":57900.98,"km_emp":4902.44,"km_temp":62803.42,"km_odo":70532.0,"avg_km":220.36,"pend":1262768701.0,"biaya_langsung":68234723.0,"bb":53460223.0,"cuci":3284000.0,"tol":11490500.0,"tko":86851476.0,"apm":194554415.0,"laba_a":1194533978.0,"laba_b":1107682502.0,"laba_c":913128087.0,"rasio_baku":0.859,"rasio_odo":0.964,"kwh":73133.0},{"tgl":3,"hari":"SENIN","sg":316,"sgo":295,"so":287,"trip":3241,"km_prod":58226.24,"km_emp":4982.67,"km_temp":63208.91,"km_odo":70792.0,"avg_km":220.24,"pend":1273912365.0,"biaya_langsung":71000078.0,"bb":55521578.0,"cuci":3342000.0,"tol":12136500.0,"tko":87339366.0,"apm":205161685.0,"laba_a":1202912287.0,"laba_b":1115572921.0,"laba_c":910411236.0,"rasio_baku":0.832,"rasio_odo":0.932,"kwh":75952.91},{"tgl":4,"hari":"SELASA","sg":316,"sgo":293,"so":284,"trip":3179,"km_prod":57007.87,"km_emp":4932.01,"km_temp":61939.87,"km_odo":69161.0,"avg_km":218.1,"pend":1248784678.0,"biaya_langsung":70077638.0,"bb":54933138.0,"cuci":3286000.0,"tol":11858500.0,"tko":85511799.0,"apm":202292860.0,"laba_a":1178707040.0,"laba_b":1093195241.0,"laba_c":890902381.0,"rasio_baku":0.824,"rasio_odo":0.92,"kwh":75147.93},{"tgl":5,"hari":"RABU","sg":316,"sgo":294,"so":286,"trip":3227,"km_prod":57809.24,"km_emp":4921.57,"km_temp":62730.8,"km_odo":69950.0,"avg_km":219.34,"pend":1264728958.0,"biaya_langsung":70145560.0,"bb":54637060.0,"cuci":3326000.0,"tol":12182500.0,"tko":86713857.0,"apm":205010148.0,"laba_a":1194583398.0,"laba_b":1107869541.0,"laba_c":902859394.0,"rasio_baku":0.839,"rasio_odo":0.936,"kwh":74742.9},{"tgl":6,"hari":"KAMIS","sg":316,"sgo":296,"so":286,"trip":3210,"km_prod":57683.77,"km_emp":4956.57,"km_temp":62640.34,"km_odo":70012.0,"avg_km":219.02,"pend":1262623575.0,"biaya_langsung":70938887.0,"bb":55653887.0,"cuci":3306000.0,"tol":11979000.0,"tko":86525655.0,"apm":203701918.0,"laba_a":1191684688.0,"laba_b":1105159033.0,"laba_c":901457114.0,"rasio_baku":0.823,"rasio_odo":0.92,"kwh":76133.91},{"tgl":7,"hari":"JUM'AT","sg":316,"sgo":294,"so":284,"trip":3246,"km_prod":58108.72,"km_emp":4940.12,"km_temp":63048.84,"km_odo":70623.0,"avg_km":222.0,"pend":1271571387.0,"biaya_langsung":70298030.0,"bb":54635530.0,"cuci":3274000.0,"tol":12388500.0,"tko":87163076.0,"apm":206896218.0,"laba_a":1201273357.0,"laba_b":1114110281.0,"laba_c":907214064.0,"rasio_baku":0.844,"rasio_odo":0.945,"kwh":74740.81},{"tgl":8,"hari":"SABTU","sg":316,"sgo":296,"so":286,"trip":3266,"km_prod":59779.49,"km_emp":4911.04,"km_temp":64690.52,"km_odo":72294.0,"avg_km":226.19,"pend":1302818234.0,"biaya_langsung":70868098.0,"bb":55304598.0,"cuci":3296000.0,"tol":12267500.0,"tko":89669229.0,"apm":206936408.0,"laba_a":1231950136.0,"laba_b":1142280907.0,"laba_c":935344499.0,"rasio_baku":0.855,"rasio_odo":0.956,"kwh":75656.08},{"tgl":9,"hari":"MINGGU","sg":316,"sgo":295,"so":288,"trip":3177,"km_prod":59568.93,"km_emp":4957.44,"km_temp":64526.37,"km_odo":72531.0,"avg_km":224.05,"pend":1297294171.0,"biaya_langsung":71420472.0,"bb":55206472.0,"cuci":3362000.0,"tol":12852000.0,"tko":89353402.0,"apm":199532267.0,"laba_a":1225873699.0,"laba_b":1136520297.0,"laba_c":936988030.0,"rasio_baku":0.854,"rasio_odo":0.96,"kwh":75521.85},{"tgl":10,"hari":"SENIN","sg":316,"sgo":295,"so":285,"trip":3239,"km_prod":58194.91,"km_emp":4947.01,"km_temp":63141.92,"km_odo":70739.0,"avg_km":221.55,"pend":1272453648.0,"biaya_langsung":69925268.0,"bb":54572768.0,"cuci":3304000.0,"tol":12048500.0,"tko":87292362.0,"apm":204503548.0,"laba_a":1202528380.0,"laba_b":1115236018.0,"laba_c":910732470.0,"rasio_baku":0.846,"rasio_odo":0.948,"kwh":74654.95},{"tgl":11,"hari":"SELASA","sg":316,"sgo":289,"so":287,"trip":3222,"km_prod":57844.3,"km_emp":4986.57,"km_temp":62830.87,"km_odo":70641.0,"avg_km":218.92,"pend":1266337522.0,"biaya_langsung":71395426.0,"bb":56121426.0,"cuci":3310000.0,"tol":11964000.0,"tko":86766454.0,"apm":204126805.0,"laba_a":1194942096.0,"laba_b":1108175642.0,"laba_c":904048837.0,"rasio_baku":0.818,"rasio_odo":0.92,"kwh":76773.5},{"tgl":12,"hari":"RABU","sg":316,"sgo":292,"so":289,"trip":3270,"km_prod":58591.63,"km_emp":5034.57,"km_temp":63626.19,"km_odo":71247.0,"avg_km":220.16,"pend":1282849131.0,"biaya_langsung":71196762.0,"bb":55498262.0,"cuci":3380000.0,"tol":12318500.0,"tko":87887440.0,"apm":207907213.0,"laba_a":1211652369.0,"laba_b":1123764929.0,"laba_c":915857716.0,"rasio_baku":0.838,"rasio_odo":0.938,"kwh":75921.01},{"tgl":13,"hari":"KAMIS","sg":316,"sgo":293,"so":289,"trip":3231,"km_prod":57832.73,"km_emp":5033.57,"km_temp":62866.3,"km_odo":70187.0,"avg_km":217.53,"pend":1267318562.0,"biaya_langsung":70840339.0,"bb":55586339.0,"cuci":3320000.0,"tol":11934000.0,"tko":86749095.0,"apm":204785670.0,"laba_a":1196478223.0,"laba_b":1109729128.0,"laba_c":904943458.0,"rasio_baku":0.827,"rasio_odo":0.923,"kwh":76041.5},{"tgl":14,"hari":"JUM'AT","sg":316,"sgo":292,"so":289,"trip":3248,"km_prod":58201.3,"km_emp":5001.01,"km_temp":63202.31,"km_odo":70769.0,"avg_km":218.69,"pend":1273516514.0,"biaya_langsung":71249457.0,"bb":55771957.0,"cuci":3380000.0,"tol":12097500.0,"tko":87301956.0,"apm":204112355.0,"laba_a":1202267057.0,"laba_b":1114965101.0,"laba_c":910852747.0,"rasio_baku":0.828,"rasio_odo":0.928,"kwh":76295.43},{"tgl":15,"hari":"SABTU","sg":316,"sgo":290,"so":289,"trip":3303,"km_prod":60644.08,"km_emp":4990.94,"km_temp":65635.02,"km_odo":73394.0,"avg_km":227.11,"pend":1322777872.0,"biaya_langsung":73584818.0,"bb":57765318.0,"cuci":3380000.0,"tol":12439500.0,"tko":90966117.0,"apm":212780218.0,"laba_a":1249193054.0,"laba_b":1158226937.0,"laba_c":945446719.0,"rasio_baku":0.831,"rasio_odo":0.929,"kwh":79022.32},{"tgl":16,"hari":"MINGGU","sg":316,"sgo":291,"so":289,"trip":3138,"km_prod":58873.14,"km_emp":4978.84,"km_temp":63851.98,"km_odo":71537.0,"avg_km":220.94,"pend":1284138521.0,"biaya_langsung":70972201.0,"bb":55122701.0,"cuci":3380000.0,"tol":12469500.0,"tko":88309718.0,"apm":198568533.0,"laba_a":1213166320.0,"laba_b":1124856602.0,"laba_c":926288069.0,"rasio_baku":0.847,"rasio_odo":0.949,"kwh":75407.25},{"tgl":17,"hari":"SENIN","sg":316,"sgo":290,"so":285,"trip":3051,"km_prod":58244.41,"km_emp":4817.92,"km_temp":63062.33,"km_odo":70567.0,"avg_km":221.27,"pend":1268009001.0,"biaya_langsung":72829407.0,"bb":57348907.0,"cuci":3326000.0,"tol":12154500.0,"tko":87366617.0,"apm":196501469.0,"laba_a":1195179594.0,"laba_b":1107812977.0,"laba_c":911311509.0,"rasio_baku":0.804,"rasio_odo":0.899,"kwh":78452.68},{"tgl":18,"hari":"SELASA","sg":316,"sgo":289,"so":286,"trip":3240,"km_prod":58065.33,"km_emp":4914.07,"km_temp":62979.4,"km_odo":70446.0,"avg_km":220.21,"pend":1269150219.0,"biaya_langsung":71749953.0,"bb":56339453.0,"cuci":3386000.0,"tol":12024500.0,"tko":87097995.0,"apm":204075801.0,"laba_a":1197400266.0,"laba_b":1110302271.0,"laba_c":906226470.0,"rasio_baku":0.817,"rasio_odo":0.914,"kwh":77071.75},{"tgl":19,"hari":"RABU","sg":316,"sgo":294,"so":286,"trip":3223,"km_prod":57899.03,"km_emp":4943.77,"km_temp":62842.8,"km_odo":70324.0,"avg_km":219.73,"pend":1266822974.0,"biaya_langsung":70633721.0,"bb":55077721.0,"cuci":3386000.0,"tol":12170000.0,"tko":86848550.0,"apm":204985914.0,"laba_a":1196189253.0,"laba_b":1109340703.0,"laba_c":904354789.0,"rasio_baku":0.834,"rasio_odo":0.933,"kwh":75345.72},{"tgl":20,"hari":"KAMIS","sg":316,"sgo":291,"so":286,"trip":3221,"km_prod":58095.94,"km_emp":4935.77,"km_temp":63031.71,"km_odo":70587.0,"avg_km":220.39,"pend":1270797986.0,"biaya_langsung":71562332.0,"bb":55735832.0,"cuci":3386000.0,"tol":12440500.0,"tko":87143911.0,"apm":206148149.0,"laba_a":1199235654.0,"laba_b":1112091743.0,"laba_c":905943593.0,"rasio_baku":0.827,"rasio_odo":0.926,"kwh":76246.01},{"tgl":21,"hari":"JUM'AT","sg":316,"sgo":291,"so":287,"trip":3232,"km_prod":58175.21,"km_emp":4967.39,"km_temp":63142.6,"km_odo":70664.0,"avg_km":220.01,"pend":1273068234.0,"biaya_langsung":72453750.0,"bb":57459750.0,"cuci":3404000.0,"tol":11590000.0,"tko":87262808.0,"apm":206373921.0,"laba_a":1200614484.0,"laba_b":1113351676.0,"laba_c":906977756.0,"rasio_baku":0.803,"rasio_odo":0.899,"kwh":78604.31},{"tgl":22,"hari":"SABTU","sg":316,"sgo":290,"so":287,"trip":3316,"km_prod":60911.33,"km_emp":4919.04,"km_temp":65830.37,"km_odo":73409.0,"avg_km":229.37,"pend":1326105580.0,"biaya_langsung":72978873.0,"bb":57253873.0,"cuci":3374000.0,"tol":12351000.0,"tko":91366990.0,"apm":211373766.0,"laba_a":1253126707.0,"laba_b":1161759717.0,"laba_c":950385950.0,"rasio_baku":0.841,"rasio_odo":0.937,"kwh":78322.67},{"tgl":23,"hari":"MINGGU","sg":316,"sgo":288,"so":286,"trip":3240,"km_prod":59372.2,"km_emp":4941.44,"km_temp":64313.64,"km_odo":72270.0,"avg_km":224.87,"pend":1293450684.0,"biaya_langsung":70925931.0,"bb":55418931.0,"cuci":3344000.0,"tol":12163000.0,"tko":89058305.0,"apm":200352501.0,"laba_a":1222524753.0,"laba_b":1133466448.0,"laba_c":933113948.0,"rasio_baku":0.848,"rasio_odo":0.953,"kwh":75812.49},{"tgl":24,"hari":"SENIN","sg":316,"sgo":290,"so":285,"trip":3255,"km_prod":58161.46,"km_emp":4966.75,"km_temp":63128.21,"km_odo":71086.0,"avg_km":221.5,"pend":1272490477.0,"biaya_langsung":71911605.0,"bb":55897605.0,"cuci":3382000.0,"tol":12632000.0,"tko":87242196.0,"apm":205625814.0,"laba_a":1200578872.0,"laba_b":1113336676.0,"laba_c":907710861.0,"rasio_baku":0.826,"rasio_odo":0.93,"kwh":76467.31},{"tgl":25,"hari":"SELASA","sg":316,"sgo":295,"so":287,"trip":3367,"km_prod":61387.57,"km_emp":4917.74,"km_temp":66305.31,"km_odo":74505.0,"avg_km":231.03,"pend":1335374581.0,"biaya_langsung":72156497.0,"bb":56354497.0,"cuci":3372000.0,"tol":12430000.0,"tko":92081355.0,"apm":212563676.0,"laba_a":1263218084.0,"laba_b":1171136729.0,"laba_c":958573053.0,"rasio_baku":0.86,"rasio_odo":0.966,"kwh":77092.33},{"tgl":26,"hari":"RABU","sg":316,"sgo":293,"so":285,"trip":3104,"km_prod":57451.21,"km_emp":4970.31,"km_temp":62421.52,"km_odo":71292.0,"avg_km":219.02,"pend":1258696204.0,"biaya_langsung":75113614.0,"bb":55930114.0,"cuci":3352000.0,"tol":15831500.0,"tko":86176818.0,"apm":204241985.0,"laba_a":1183582590.0,"laba_b":1097405772.0,"laba_c":893163787.0,"rasio_baku":0.816,"rasio_odo":0.932,"kwh":76511.78},{"tgl":27,"hari":"KAMIS","sg":316,"sgo":295,"so":286,"trip":3164,"km_prod":58505.15,"km_emp":4972.01,"km_temp":63477.15,"km_odo":72141.0,"avg_km":221.95,"pend":1278141887.0,"biaya_langsung":72223674.0,"bb":53084174.0,"cuci":3344000.0,"tol":15795500.0,"tko":87757719.0,"apm":202861719.0,"laba_a":1205918213.0,"laba_b":1118160494.0,"laba_c":915298776.0,"rasio_baku":0.874,"rasio_odo":0.993,"kwh":72618.57},{"tgl":28,"hari":"JUM'AT","sg":316,"sgo":296,"so":284,"trip":3100,"km_prod":57518.72,"km_emp":4937.45,"km_temp":62456.17,"km_odo":71034.0,"avg_km":219.92,"pend":1259087462.0,"biaya_langsung":73185195.0,"bb":53452695.0,"cuci":3274000.0,"tol":16458500.0,"tko":86278088.0,"apm":203678017.0,"laba_a":1185902267.0,"laba_b":1099624179.0,"laba_c":895946162.0,"rasio_baku":0.854,"rasio_odo":0.971,"kwh":73122.7},{"tgl":29,"hari":"SABTU","sg":316,"sgo":295,"so":285,"trip":3147,"km_prod":59980.97,"km_emp":4873.04,"km_temp":64854.0,"km_odo":72750.0,"avg_km":227.56,"pend":1304788593.0,"biaya_langsung":74079276.0,"bb":56091276.0,"cuci":3264000.0,"tol":14724000.0,"tko":89971449.0,"apm":203209761.0,"laba_a":1230709317.0,"laba_b":1140737868.0,"laba_c":937528106.0,"rasio_baku":0.845,"rasio_odo":0.948,"kwh":76732.25},{"tgl":30,"hari":"MINGGU","sg":316,"sgo":299,"so":286,"trip":3128,"km_prod":59715.77,"km_emp":4934.7,"km_temp":64650.47,"km_odo":72776.0,"avg_km":226.05,"pend":1298947927.0,"biaya_langsung":73745336.0,"bb":55296336.0,"cuci":3284000.0,"tol":15165000.0,"tko":89573658.0,"apm":197392985.0,"laba_a":1225202591.0,"laba_b":1135628933.0,"laba_c":938235949.0,"rasio_baku":0.855,"rasio_odo":0.962,"kwh":75644.78},{"tgl":31,"hari":"SENIN","sg":316,"sgo":298,"so":286,"trip":3154,"km_prod":58958.67,"km_emp":4985.57,"km_temp":63944.23,"km_odo":72375.0,"avg_km":223.58,"pend":1289048153.0,"biaya_langsung":76152381.0,"bb":56278381.0,"cuci":3284000.0,"tol":16590000.0,"tko":88437999.0,"apm":208724502.0,"laba_a":1212895772.0,"laba_b":1124457773.0,"laba_c":915733271.0,"rasio_baku":0.831,"rasio_odo":0.94,"kwh":76988.21}];
+
+    // Pool Data for Agustus 2026 (Sheet Sub(R+A) & Sheet data rows 129-134)
+    const POOLS_AUG = [
+      { code: "KLD 70", name: "Klender 70", pks: "PKS 200", sg: 2170, sgo: 2037, so: 1977, trip: 20602, trip_reg: 20602, trip_amr: 0, km_prod: 427555.40, km_emp: 34797.45, km_temp: 462352.85, km_odo: 543352, avg_km: 233.87, target_km: 215, pend: 9223014740, biaya_langsung: 519173174, tko: 641333105, apm: 1061099791, kwh: 549248.53, rasio_odo: 0.989, rasio_baku: 0.842 },
+      { code: "CPT", name: "Ciputat", pks: "PKS 200", sg: 2480, sgo: 2194, so: 2117, trip: 20806, trip_reg: 20806, trip_amr: 0, km_prod: 409178.08, km_emp: 41972.00, km_temp: 451150.08, km_odo: 512305, avg_km: 213.11, target_km: 215, pend: 8999541756, biaya_langsung: 602195988, tko: 613767117, apm: 1035389434, kwh: 590255.11, rasio_odo: 0.868, rasio_baku: 0.764 },
+      { code: "PPR 60", name: "Pupar 60", pks: "PKS 60", sg: 1860, sgo: 1758, so: 1754, trip: 21509, trip_reg: 18007, trip_amr: 3502, km_prod: 353143.83, km_emp: 30426.00, km_temp: 383569.83, km_odo: 424768, avg_km: 218.68, target_km: 215, pend: 7495721696, biaya_langsung: 372602332, tko: 529715751, apm: 820072305, kwh: 436237.80, rasio_odo: 0.974, rasio_baku: 0.879 },
+      { code: "CWG 50", name: "Cawang 50", pks: "PKS 200", sg: 1550, sgo: 1433, so: 1416, trip: 17168, trip_reg: 17168, trip_amr: 0, km_prod: 290375.23, km_emp: 27152.00, km_temp: 317527.23, km_odo: 336539, avg_km: 224.24, target_km: 215, pend: 6334033104, biaya_langsung: 399838938, tko: 435562839, apm: 728724994, kwh: 363286.51, rasio_odo: 0.926, rasio_baku: 0.874 },
+      { code: "KLD", name: "Klender 30", pks: "PKS 30", sg: 930, sgo: 921, so: 868, trip: 10830, trip_reg: 8571, trip_amr: 2259, km_prod: 190961.63, km_emp: 12453.90, km_temp: 203415.53, km_odo: 230123, avg_km: 234.35, target_km: 215, pend: 3974942833, biaya_langsung: 205707962, tko: 286442442, apm: 394626124, kwh: 246117.59, rasio_odo: 0.935, rasio_baku: 0.826 },
+      { code: "PPR 26", name: "Pupar 26", pks: "PKS 26", sg: 806, sgo: 744, so: 744, trip: 8582, trip_reg: 8582, trip_amr: 0, km_prod: 145732.01, km_emp: 6542.00, km_temp: 152274.01, km_odo: 164297, avg_km: 204.67, target_km: 197, pend: 3661733167, biaya_langsung: 122610074, tko: 218598018, apm: 2291571772, kwh: 167729.24, rasio_odo: 0.980, rasio_baku: 0.908 }
+    ];
+
+    // PKS Contract Quota Progress (Sheet Dash rows 3-8 in Dashboard Produktifitas.xlsx)
+    const PKS_QUOTA = [
+      { pks: "EV PKS 26 (Pupar 26)", vol: 17169600, cap: 4649588.81, sisa: 12520011.19, pct: 27.08, color: "#FFD100" },
+      { pks: "EV PKS 60 (Pupar 60)", vol: 42376500, cap: 7550866.07, sisa: 34825633.93, pct: 17.82, color: "#10B981" },
+      { pks: "EV PKS 30 (Klender 30)", vol: 21188250, cap: 3696844.77, sisa: 17491405.23, pct: 17.45, color: "#38BDF8" },
+      { pks: "EV PKS 200 (KLD 70, CWG 50, CPT)", vol: 141255000, cap: 13202246.68, sisa: 128052753.32, pct: 9.35, color: "#005BAC" }
+    ];
+
+    // Top 10 Armada (Sheet db_reg + db_amr)
+    const TOP_BUSES = [
+      { rank: 1, bodi: "250260", area: "CWG 50", pks: "PKS 200", trip: 259, km_temp: 10861.51, km_prod: 10284.51, pend: 216665382, biaya: 16125504, laba: 200539878, kwh: 10049.94 },
+      { rank: 2, bodi: "250194", area: "KLD 70", pks: "PKS 200", trip: 209, km_temp: 10612.02, km_prod: 10052.02, pend: 211688615, biaya: 15448011, laba: 196240604, kwh: 9904.26 },
+      { rank: 3, bodi: "250254", area: "CWG 50", pks: "PKS 200", trip: 222, km_temp: 9931.56, km_prod: 9368.56, pend: 198114679, biaya: 14602861, laba: 183511818, kwh: 8523.07 },
+      { rank: 4, bodi: "250163", area: "KLD 70", pks: "PKS 200", trip: 224, km_temp: 9898.34, km_prod: 9298.34, pend: 197452026, biaya: 14718771, laba: 182733255, kwh: 10363.57 },
+      { rank: 5, bodi: "250162", area: "KLD 70", pks: "PKS 200", trip: 224, km_temp: 9537.95, km_prod: 8938.95, pend: 190262967, biaya: 13768482, laba: 176494484, kwh: 9740.74 },
+      { rank: 6, bodi: "250188", area: "KLD 70", pks: "PKS 200", trip: 218, km_temp: 9482.10, km_prod: 8890.10, pend: 189148931, biaya: 13690120, laba: 175458811, kwh: 9612.40 },
+      { rank: 7, bodi: "250268", area: "CWG 50", pks: "PKS 200", trip: 235, km_temp: 9415.80, km_prod: 8835.80, pend: 187826378, biaya: 13845200, laba: 173981178, kwh: 8940.15 },
+      { rank: 8, bodi: "240142", area: "KLD 30", pks: "PKS 30", trip: 412, km_temp: 9340.25, km_prod: 8790.25, pend: 182517825, biaya: 11240500, laba: 171277325, kwh: 9410.50 },
+      { rank: 9, bodi: "240198", area: "PPR 60", pks: "PKS 60", trip: 386, km_temp: 9285.40, km_prod: 8715.40, pend: 181455288, biaya: 10980400, laba: 170474888, kwh: 9320.80 },
+      { rank: 10, bodi: "250312", area: "CPT", pks: "PKS 200", trip: 310, km_temp: 9210.65, km_prod: 8650.65, pend: 183734046, biaya: 13920110, laba: 169813936, kwh: 10120.30 }
+    ];
+
+    // Top 10 Koridor (Sheet db_reg + db_amr + R_Kor)
+    const TOP_CORRIDORS = [
+      { rank: 1, kode: "6H", rute: "Lebak Bulus - Senen", so: 771, trip: 5607, km_temp: 161582.40, pend: 3223245755 },
+      { rank: 2, kode: "1A", rute: "Balaikota - Pantai Maju", so: 770, trip: 5703, km_temp: 148714.54, pend: 2966557724 },
+      { rank: 3, kode: "4K", rute: "Pulogadung - Kejaksaan", so: 642, trip: 6730, km_temp: 139186.28, pend: 2776487844 },
+      { rank: 4, kode: "7", rute: "Kp. Rambutan - Kp. Melayu", so: 383, trip: 5526, km_temp: 82013.03, pend: 1621556132 },
+      { rank: 5, kode: "6M", rute: "Manggarai - Blok M", so: 381, trip: 4653, km_temp: 79691.62, pend: 1589688436 },
+      { rank: 6, kode: "7F", rute: "Kp. Rambutan - Juanda via Cempaka Putih", so: 365, trip: 3120, km_temp: 76420.18, pend: 1524430110 },
+      { rank: 7, kode: "4C", rute: "Pemuda Merdeka - Bundaran Senayan", so: 310, trip: 3720, km_temp: 68474.78, pend: 1646613035 },
+      { rank: 8, kode: "14A", rute: "JIS - Juanda", so: 310, trip: 5890, km_temp: 65522.10, pend: 1307034851 },
+      { rank: 9, kode: "T31", rute: "PIK 2 - Blok M", so: 295, trip: 2180, km_temp: 61790.87, pend: 1207455391 },
+      { rank: 10, kode: "11Q", rute: "Pulogebang - Kp. Melayu via BKT", so: 279, trip: 3658, km_temp: 59531.22, pend: 1431547247 }
+    ];
+
+    // Historical Monthly Rows (2024 - 2026 from Dashboard Produktifitas.xlsx)
+    const MONTHLY_ROWS = [{"no":2,"bulan":"januari","tahun":2024,"area":"pupar","pks":26,"so":24.7,"uo":23.5,"jml_so":765.0,"jml_uo":730.0,"trip":7989,"km_prod":120018.24,"km_emp":5952.0,"km_temp":125970.24,"avg_km":172.56,"pend":2898953202.0,"biaya_ops":131215222.0,"tko":180027364.0,"kwh":159039.66,"rasio_bb":0.841,"temp_real":0.0,"bdmi":1.0489},{"no":3,"bulan":"februari","tahun":2024,"area":"pupar","pks":26,"so":25.0,"uo":24.0,"jml_so":725.0,"jml_uo":696.0,"trip":7905,"km_prod":118903.21,"km_emp":5819.0,"km_temp":124722.21,"avg_km":179.2,"pend":2870232127.0,"biaya_ops":113523941.0,"tko":178354809.0,"kwh":137604.78,"rasio_bb":0.972,"temp_real":0.0,"bdmi":1.0625},{"no":4,"bulan":"maret","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":793.0,"jml_uo":746.0,"trip":9101,"km_prod":137223.87,"km_emp":6833.0,"km_temp":144056.87,"avg_km":193.11,"pend":3315180680.0,"biaya_ops":143146624.0,"tko":205835800.0,"kwh":173511.06,"rasio_bb":0.892,"temp_real":0.0,"bdmi":1.0697},{"no":5,"bulan":"april","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":23.0,"jml_so":770.0,"jml_uo":691.0,"trip":8634,"km_prod":130118.37,"km_emp":6366.0,"km_temp":136484.37,"avg_km":197.52,"pend":3140914761.0,"biaya_ops":135207510.0,"tko":195177552.0,"kwh":163887.89,"rasio_bb":0.893,"temp_real":0.0,"bdmi":1.0692},{"no":6,"bulan":"mei","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":805.0,"jml_uo":744.0,"trip":9509,"km_prod":144599.19,"km_emp":6706.0,"km_temp":151305.19,"avg_km":203.37,"pend":3481986407.0,"biaya_ops":144743965.0,"tko":216898790.0,"kwh":175447.23,"rasio_bb":0.913,"temp_real":0.0,"bdmi":1.07},{"no":7,"bulan":"juni","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":765.0,"jml_uo":717.0,"trip":8837,"km_prod":138521.02,"km_emp":6192.0,"km_temp":144713.02,"avg_km":201.83,"pend":3330280637.0,"biaya_ops":132456704.0,"tko":207781524.0,"kwh":160553.58,"rasio_bb":0.952,"temp_real":0.0,"bdmi":1.0678},{"no":8,"bulan":"juli","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":797.0,"jml_uo":745.0,"trip":9165,"km_prod":144732.42,"km_emp":6440.0,"km_temp":151172.42,"avg_km":202.92,"pend":3478930832.0,"biaya_ops":139562410.0,"tko":217098626.0,"kwh":169166.56,"rasio_bb":0.949,"temp_real":0.0,"bdmi":1.07},{"no":9,"bulan":"agustus","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":806.0,"jml_uo":748.0,"trip":9181,"km_prod":144465.82,"km_emp":6538.0,"km_temp":151003.82,"avg_km":201.88,"pend":3475051002.0,"biaya_ops":143610176.0,"tko":216698736.0,"kwh":174072.94,"rasio_bb":0.925,"temp_real":0.0,"bdmi":1.07},{"no":10,"bulan":"september","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":24.0,"jml_so":772.0,"jml_uo":725.0,"trip":8922,"km_prod":140073.39,"km_emp":6762.0,"km_temp":146835.39,"avg_km":202.53,"pend":3379122899.0,"biaya_ops":140374022.0,"tko":210110090.0,"kwh":170150.33,"rasio_bb":0.923,"temp_real":0.0,"bdmi":1.07},{"no":11,"bulan":"oktober","tahun":2024,"area":"pupar","pks":26,"so":26.0,"uo":25.0,"jml_so":797.0,"jml_uo":768.0,"trip":9463,"km_prod":149426.4,"km_emp":6796.0,"km_temp":156222.4,"avg_km":203.41,"pend":3595146068.0,"biaya_ops":150346621.0,"tko":224139598.0,"kwh":182238.33,"rasio_bb":0.916,"temp_real":0.0,"bdmi":1.07},{"no":12,"bulan":"november","tahun":2024,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":727.0,"jml_uo":713.0,"trip":8822,"km_prod":138956.51,"km_emp":6035.0,"km_temp":144991.51,"avg_km":203.35,"pend":3336689551.0,"biaya_ops":131655943.0,"tko":208434760.0,"kwh":159582.96,"rasio_bb":0.974,"temp_real":0.0,"bdmi":1.0653},{"no":13,"bulan":"desember","tahun":2024,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":754.0,"jml_uo":744.0,"trip":9105,"km_prod":143315.1,"km_emp":6234.0,"km_temp":149549.1,"avg_km":201.01,"pend":3445085371.0,"biaya_ops":134566220.0,"tko":214972642.0,"kwh":163110.57,"rasio_bb":0.976,"temp_real":0.0,"bdmi":1.0659},{"no":14,"bulan":"desember","tahun":2024,"area":"pupar","pks":60,"so":52.0,"uo":49.0,"jml_so":990.0,"jml_uo":931.0,"trip":12672,"km_prod":185792.95,"km_emp":12850.0,"km_temp":198642.95,"avg_km":213.37,"pend":3675490561.0,"biaya_ops":192353879.0,"tko":278689430.0,"kwh":263138.0,"rasio_bb":0.82,"temp_real":0.0,"bdmi":1.069},{"no":15,"bulan":"desember","tahun":2024,"area":"klender","pks":30,"so":28.0,"uo":28.0,"jml_so":226.0,"jml_uo":222.0,"trip":3634,"km_prod":47046.96,"km_emp":2760.0,"km_temp":49806.96,"avg_km":224.36,"pend":929397836.0,"biaya_ops":47518505.0,"tko":70570437.0,"kwh":65004.8,"rasio_bb":0.813,"temp_real":0.0,"bdmi":1.008},{"no":16,"bulan":"januari","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":747.0,"jml_uo":745.0,"trip":9310,"km_prod":145466.98,"km_emp":6196.0,"km_temp":151662.98,"avg_km":203.57,"pend":3633389940.0,"biaya_ops":119633351.0,"tko":218200466.0,"kwh":163657.11,"rasio_bb":0.987,"temp_real":151663.0,"bdmi":1.0644},{"no":17,"bulan":"januari","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1777.0,"jml_uo":1772.0,"trip":24344,"km_prod":376482.59,"km_emp":29866.0,"km_temp":406348.59,"avg_km":229.32,"pend":7518667903.0,"biaya_ops":323732434.0,"tko":564723880.0,"kwh":442862.43,"rasio_bb":1.016,"temp_real":449933.0,"bdmi":1.0664},{"no":18,"bulan":"januari","tahun":2025,"area":"klender","pks":30,"so":28.0,"uo":28.0,"jml_so":894.0,"jml_uo":871.0,"trip":15633,"km_prod":194820.94,"km_emp":11024.0,"km_temp":205844.94,"avg_km":236.33,"pend":3841066618.0,"biaya_ops":172214897.0,"tko":292231413.0,"kwh":235588.09,"rasio_bb":0.922,"temp_real":217154.0,"bdmi":1.0622},{"no":19,"bulan":"januari","tahun":2025,"area":"cawang","pks":120,"so":45.0,"uo":44.0,"jml_so":1403.0,"jml_uo":1357.0,"trip":17190,"km_prod":242962.49,"km_emp":24984.0,"km_temp":267946.49,"avg_km":197.46,"pend":3953550401.0,"biaya_ops":1081861384.0,"tko":364443729.0,"kwh":148780.42,"rasio_bb":2.198,"temp_real":327029.0,"bdmi":null},{"no":20,"bulan":"januari","tahun":2025,"area":"pulogadung","pks":120,"so":61.0,"uo":58.0,"jml_so":1903.0,"jml_uo":1813.0,"trip":1813,"km_prod":337491.72,"km_emp":36232.1,"km_temp":373723.82,"avg_km":206.14,"pend":5514294979.0,"biaya_ops":1475784384.0,"tko":506237582.0,"kwh":207416.01,"rasio_bb":2.165,"temp_real":449139.0,"bdmi":null},{"no":21,"bulan":"februari","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":676.0,"jml_uo":675.0,"trip":8225,"km_prod":131408.84,"km_emp":6406.0,"km_temp":137814.84,"avg_km":204.17,"pend":3301630122.0,"biaya_ops":116259188.0,"tko":197113260.0,"kwh":148981.79,"rasio_bb":0.978,"temp_real":145695.0,"bdmi":1.07},{"no":22,"bulan":"februari","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1598.0,"jml_uo":1597.0,"trip":21636,"km_prod":342394.75,"km_emp":27747.0,"km_temp":370141.75,"avg_km":231.77,"pend":6848732837.0,"biaya_ops":340070657.0,"tko":513592128.0,"kwh":405912.66,"rasio_bb":1.016,"temp_real":412292.0,"bdmi":1.0507},{"no":23,"bulan":"februari","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":807.0,"jml_uo":784.0,"trip":13555,"km_prod":169012.26,"km_emp":10268.2,"km_temp":179280.46,"avg_km":228.67,"pend":3345373309.0,"biaya_ops":147249667.0,"tko":253518384.0,"kwh":201435.93,"rasio_bb":0.953,"temp_real":191998.0,"bdmi":1.0622},{"no":24,"bulan":"februari","tahun":2025,"area":"cawang","pks":120,"so":47.0,"uo":46.0,"jml_so":1307.0,"jml_uo":1297.0,"trip":15134,"km_prod":234979.28,"km_emp":24081.5,"km_temp":259060.78,"avg_km":199.74,"pend":3822441765.0,"biaya_ops":1068945160.0,"tko":352468916.0,"kwh":146169.73,"rasio_bb":2.177,"temp_real":318204.0,"bdmi":null},{"no":25,"bulan":"februari","tahun":2025,"area":"pulogadung","pks":120,"so":60.0,"uo":59.0,"jml_so":1670.0,"jml_uo":1653.0,"trip":20329,"km_prod":302232.35,"km_emp":33034.0,"km_temp":335266.35,"avg_km":202.82,"pend":4946854965.0,"biaya_ops":1335434508.0,"tko":453348522.0,"kwh":186510.59,"rasio_bb":2.154,"temp_real":401722.0,"bdmi":null},{"no":26,"bulan":"maret","tahun":2025,"area":"pupar","pks":26,"so":23.0,"uo":23.0,"jml_so":726.0,"jml_uo":717.0,"trip":7758,"km_prod":130453.79,"km_emp":6345.0,"km_temp":136798.79,"avg_km":190.79,"pend":3277288588.0,"biaya_ops":117887477.0,"tko":195680684.0,"kwh":158779.04,"rasio_bb":0.925,"temp_real":146939.0,"bdmi":1.0452},{"no":27,"bulan":"maret","tahun":2025,"area":"pupar","pks":60,"so":55.0,"uo":55.0,"jml_so":1707.0,"jml_uo":1703.0,"trip":21448,"km_prod":343224.81,"km_emp":28874.6,"km_temp":372099.41,"avg_km":218.5,"pend":6884955420.0,"biaya_ops":354260500.0,"tko":514837218.0,"kwh":419292.04,"rasio_bb":0.993,"temp_real":416294.0,"bdmi":1.0499},{"no":28,"bulan":"maret","tahun":2025,"area":"klender","pks":30,"so":30.0,"uo":27.0,"jml_so":917.0,"jml_uo":830.0,"trip":12073,"km_prod":160131.38,"km_emp":11495.0,"km_temp":171626.38,"avg_km":206.78,"pend":3202548288.0,"biaya_ops":150688578.0,"tko":240197073.0,"kwh":197207.36,"rasio_bb":0.95,"temp_real":187393.0,"bdmi":1.0689},{"no":29,"bulan":"maret","tahun":2025,"area":"cawang","pks":120,"so":47.0,"uo":45.0,"jml_so":1446.0,"jml_uo":1391.0,"trip":15976,"km_prod":285985.22,"km_emp":26158.5,"km_temp":312143.72,"avg_km":224.4,"pend":4605680589.0,"biaya_ops":1242201044.0,"tko":428977830.0,"kwh":162905.74,"rasio_bb":2.413,"temp_real":393155.0,"bdmi":null},{"no":30,"bulan":"maret","tahun":2025,"area":"cakung","pks":120,"so":61.0,"uo":58.0,"jml_so":1877.0,"jml_uo":1807.0,"trip":21994,"km_prod":339541.53,"km_emp":36074.8,"km_temp":375616.33,"avg_km":207.87,"pend":5542219008.0,"biaya_ops":1493323212.0,"tko":509312301.0,"kwh":207041.8,"rasio_bb":2.2,"temp_real":455390.0,"bdmi":null},{"no":31,"bulan":"april","tahun":2025,"area":"pupar","pks":26,"so":23.0,"uo":23.0,"jml_so":686.0,"jml_uo":675.0,"trip":7482,"km_prod":125619.23,"km_emp":5915.0,"km_temp":131534.23,"avg_km":194.87,"pend":3151165452.0,"biaya_ops":107189768.0,"tko":188428839.0,"kwh":146634.43,"rasio_bb":0.954,"temp_real":139907.0,"bdmi":1.0393},{"no":32,"bulan":"april","tahun":2025,"area":"pupar","pks":60,"so":55.0,"uo":53.0,"jml_so":1644.0,"jml_uo":1595.0,"trip":19732,"km_prod":317370.18,"km_emp":27634.0,"km_temp":345004.18,"avg_km":216.3,"pend":6383612287.0,"biaya_ops":338490496.0,"tko":476055266.0,"kwh":402997.26,"rasio_bb":0.966,"temp_real":389284.0,"bdmi":1.0219},{"no":33,"bulan":"april","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":26.0,"jml_so":870.0,"jml_uo":776.0,"trip":11224,"km_prod":150567.45,"km_emp":10839.7,"km_temp":161407.15,"avg_km":208.0,"pend":3011857438.0,"biaya_ops":145160732.0,"tko":225851176.0,"kwh":189851.21,"rasio_bb":0.929,"temp_real":176430.0,"bdmi":1.0635},{"no":34,"bulan":"april","tahun":2025,"area":"cawang","pks":120,"so":46.0,"uo":44.0,"jml_so":1388.0,"jml_uo":1313.0,"trip":16854,"km_prod":234436.1,"km_emp":24783.2,"km_temp":259219.3,"avg_km":197.43,"pend":3824780816.0,"biaya_ops":1044686086.0,"tko":351654154.0,"kwh":143773.62,"rasio_bb":2.196,"temp_real":315784.0,"bdmi":null},{"no":35,"bulan":"april","tahun":2025,"area":"cakung","pks":120,"so":60.0,"uo":57.0,"jml_so":1804.0,"jml_uo":1718.0,"trip":20654,"km_prod":315331.58,"km_emp":34274.0,"km_temp":349605.58,"avg_km":203.5,"pend":5158430303.0,"biaya_ops":1414725115.0,"tko":472997367.0,"kwh":197673.11,"rasio_bb":2.126,"temp_real":420241.0,"bdmi":null},{"no":36,"bulan":"mei","tahun":2025,"area":"pupar","pks":26,"so":25.0,"uo":24.0,"jml_so":764.0,"jml_uo":744.0,"trip":8566,"km_prod":145390.58,"km_emp":5661.0,"km_temp":151051.58,"avg_km":203.03,"pend":3618742702.0,"biaya_ops":122944543.0,"tko":218085870.0,"kwh":168186.79,"rasio_bb":0.953,"temp_real":160274.0,"bdmi":1.0583},{"no":37,"bulan":"mei","tahun":2025,"area":"pupar","pks":60,"so":58.0,"uo":57.0,"jml_so":1784.0,"jml_uo":1767.0,"trip":21595,"km_prod":350072.63,"km_emp":31554.0,"km_temp":381626.63,"avg_km":215.97,"pend":7061237516.0,"biaya_ops":375376260.0,"tko":525108944.0,"kwh":448810.21,"rasio_bb":0.962,"temp_real":431813.0,"bdmi":1.0614},{"no":38,"bulan":"mei","tahun":2025,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":926.0,"jml_uo":862.0,"trip":12653,"km_prod":170578.13,"km_emp":12054.8,"km_temp":182632.93,"avg_km":211.87,"pend":3407930548.0,"biaya_ops":162449509.0,"tko":255867201.0,"kwh":212629.29,"rasio_bb":0.94,"temp_real":199967.0,"bdmi":1.07},{"no":39,"bulan":"mei","tahun":2025,"area":"cawang","pks":120,"so":47.0,"uo":46.0,"jml_so":1463.0,"jml_uo":1416.0,"trip":17131,"km_prod":244926.98,"km_emp":27149.2,"km_temp":272076.18,"avg_km":192.14,"pend":4014484006.0,"biaya_ops":1102925358.0,"tko":367390467.0,"kwh":152068.58,"rasio_bb":2.16,"temp_real":328534.0,"bdmi":null},{"no":40,"bulan":"mei","tahun":2025,"area":"cakung","pks":120,"so":61.0,"uo":60.0,"jml_so":1894.0,"jml_uo":1850.0,"trip":22396,"km_prod":339169.76,"km_emp":36853.2,"km_temp":376022.96,"avg_km":203.26,"pend":5548218760.0,"biaya_ops":1496139967.0,"tko":508754638.0,"kwh":208865.22,"rasio_bb":2.185,"temp_real":456354.0,"bdmi":null},{"no":41,"bulan":"juni","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":723.0,"jml_uo":720.0,"trip":8221,"km_prod":140025.37,"km_emp":5428.0,"km_temp":145453.37,"avg_km":202.02,"pend":3484626361.0,"biaya_ops":116450204.0,"tko":210038054.0,"kwh":159302.6,"rasio_bb":0.966,"temp_real":153945.0,"bdmi":1.0428},{"no":42,"bulan":"juni","tahun":2025,"area":"pupar","pks":60,"so":57.1,"uo":57.0,"jml_so":1713.0,"jml_uo":1710.0,"trip":20512,"km_prod":338269.2,"km_emp":31741.0,"km_temp":370010.2,"avg_km":216.38,"pend":6846298657.0,"biaya_ops":355895262.0,"tko":507403794.0,"kwh":423960.14,"rasio_bb":0.992,"temp_real":420636.0,"bdmi":1.0054},{"no":43,"bulan":"juni","tahun":2025,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":888.0,"jml_uo":834.0,"trip":12296,"km_prod":166566.02,"km_emp":11421.6,"km_temp":177987.62,"avg_km":213.41,"pend":3321248896.0,"biaya_ops":155471360.0,"tko":249849022.0,"kwh":203249.33,"rasio_bb":0.964,"temp_real":195887.0,"bdmi":1.0691},{"no":44,"bulan":"juni","tahun":2025,"area":"cawang","pks":120,"so":47.0,"uo":46.0,"jml_so":1400.0,"jml_uo":1371.5,"trip":18569,"km_prod":242604.59,"km_emp":26995.0,"km_temp":269599.59,"avg_km":196.57,"pend":3977941965.0,"biaya_ops":1072450002.0,"tko":363906886.0,"kwh":145086.66,"rasio_bb":2.236,"temp_real":324436.0,"bdmi":null},{"no":45,"bulan":"juni","tahun":2025,"area":"cakung","pks":120,"so":60.0,"uo":60.0,"jml_so":1809.5,"jml_uo":1812.0,"trip":21090,"km_prod":337944.82,"km_emp":36136.8,"km_temp":374081.62,"avg_km":206.45,"pend":5519574274.0,"biaya_ops":1508789974.0,"tko":506917227.0,"kwh":209328.36,"rasio_bb":2.16,"temp_real":452179.0,"bdmi":null},{"no":46,"bulan":"juli","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":746.0,"jml_uo":744.0,"trip":8429,"km_prod":143937.43,"km_emp":5491.0,"km_temp":149428.43,"avg_km":200.84,"pend":3579856826.0,"biaya_ops":121573373.0,"tko":215906140.0,"kwh":166311.04,"rasio_bb":0.958,"temp_real":159302.0,"bdmi":1.0569},{"no":47,"bulan":"juli","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1774.0,"jml_uo":1767.0,"trip":20735,"km_prod":346354.95,"km_emp":33262.0,"km_temp":379616.95,"avg_km":214.84,"pend":7024052500.0,"biaya_ops":371679462.0,"tko":519532431.0,"kwh":443410.34,"rasio_bb":0.969,"temp_real":429699.0,"bdmi":1.0613},{"no":48,"bulan":"juli","tahun":2025,"area":"klender","pks":30,"so":28.0,"uo":28.0,"jml_so":870.0,"jml_uo":860.0,"trip":11114,"km_prod":173411.19,"km_emp":11858.0,"km_temp":185269.19,"avg_km":215.43,"pend":3457123029.0,"biaya_ops":155641864.0,"tko":260116780.0,"kwh":200976.97,"rasio_bb":1.024,"temp_real":205830.0,"bdmi":1.017},{"no":49,"bulan":"juli","tahun":2025,"area":"klender","pks":200,"so":69.0,"uo":67.0,"jml_so":2129.0,"jml_uo":2065.0,"trip":21195,"km_prod":398866.97,"km_emp":35033.04,"km_temp":433900.01,"avg_km":210.12,"pend":8537850558.0,"biaya_ops":430098559.0,"tko":598300461.0,"kwh":540829.49,"rasio_bb":0.891,"temp_real":481774.0,"bdmi":0.9087},{"no":50,"bulan":"juli","tahun":2025,"area":"cawang","pks":120,"so":44.0,"uo":44.0,"jml_so":1356.0,"jml_uo":1352.0,"trip":19165,"km_prod":237206.62,"km_emp":26712.2,"km_temp":263918.82,"avg_km":195.21,"pend":3894122219.0,"biaya_ops":1101439221.0,"tko":355809933.0,"kwh":149645.36,"rasio_bb":2.229,"temp_real":333602.0,"bdmi":null},{"no":51,"bulan":"juli","tahun":2025,"area":"cakung","pks":120,"so":60.0,"uo":60.0,"jml_so":1859.0,"jml_uo":1846.0,"trip":20340,"km_prod":339660.83,"km_emp":36861.1,"km_temp":376521.93,"avg_km":203.97,"pend":5555581048.0,"biaya_ops":1557297795.0,"tko":509491242.0,"kwh":215778.23,"rasio_bb":2.132,"temp_real":460080.0,"bdmi":null},{"no":52,"bulan":"agustus","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":738.0,"jml_uo":730.0,"trip":8118,"km_prod":138089.71,"km_emp":5167.0,"km_temp":143256.71,"avg_km":196.24,"pend":3432001073.0,"biaya_ops":115154115.0,"tko":207134570.0,"kwh":157529.57,"rasio_bb":0.971,"temp_real":152986.0,"bdmi":1.0339},{"no":53,"bulan":"agustus","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1761.0,"jml_uo":1753.0,"trip":19980,"km_prod":332347.07,"km_emp":32042.0,"km_temp":364389.07,"avg_km":207.87,"pend":6742291036.0,"biaya_ops":349753646.0,"tko":498520611.0,"kwh":414964.63,"rasio_bb":0.994,"temp_real":412599.0,"bdmi":1.0456},{"no":54,"bulan":"agustus","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":27.0,"jml_so":914.0,"jml_uo":844.0,"trip":9453,"km_prod":166712.03,"km_emp":12118.5,"km_temp":178830.53,"avg_km":211.88,"pend":3336977690.0,"biaya_ops":147155088.0,"tko":250068045.0,"kwh":192262.77,"rasio_bb":1.033,"temp_real":198557.0,"bdmi":1.012},{"no":55,"bulan":"agustus","tahun":2025,"area":"klender","pks":200,"so":67.0,"uo":64.0,"jml_so":2062.0,"jml_uo":1973.0,"trip":19656,"km_prod":398174.14,"km_emp":32990.94,"km_temp":431165.08,"avg_km":218.53,"pend":8484035198.0,"biaya_ops":442343044.0,"tko":597261205.0,"kwh":512528.38,"rasio_bb":0.939,"temp_real":481082.0,"bdmi":1.0063},{"no":56,"bulan":"agustus","tahun":2025,"area":"cawang","pks":200,"so":50.0,"uo":29.0,"jml_so":300.0,"jml_uo":175.0,"trip":2111,"km_prod":25417.91,"km_emp":2603.0,"km_temp":28020.91,"avg_km":160.12,"pend":551367466.0,"biaya_ops":37755660.0,"tko":38126866.0,"kwh":44784.76,"rasio_bb":0.701,"temp_real":31404.0,"bdmi":null},{"no":57,"bulan":"agustus","tahun":2025,"area":"cawang","pks":120,"so":45.0,"uo":44.0,"jml_so":758.0,"jml_uo":756.0,"trip":10932,"km_prod":135406.4,"km_emp":14799.0,"km_temp":150205.4,"avg_km":198.68,"pend":2216280647.0,"biaya_ops":627465049.0,"tko":203109597.0,"kwh":85282.58,"rasio_bb":2.234,"temp_real":190516.0,"bdmi":null},{"no":58,"bulan":"agustus","tahun":2025,"area":"cakung","pks":120,"so":81.0,"uo":77.0,"jml_so":2526.0,"jml_uo":2391.0,"trip":26619,"km_prod":412337.83,"km_emp":47586.5,"km_temp":459924.33,"avg_km":192.36,"pend":6786183460.0,"biaya_ops":1902658827.0,"tko":618506742.0,"kwh":263451.8,"rasio_bb":2.167,"temp_real":570917.0,"bdmi":null},{"no":59,"bulan":"september","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":719.0,"jml_uo":711.0,"trip":7136,"km_prod":125328.22,"km_emp":3724.0,"km_temp":129052.22,"avg_km":181.51,"pend":3091704154.0,"biaya_ops":109211246.0,"tko":187992338.0,"kwh":149399.79,"rasio_bb":0.931,"temp_real":139124.0,"bdmi":1.07},{"no":60,"bulan":"september","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":56.0,"jml_so":1707.0,"jml_uo":1692.0,"trip":19300,"km_prod":319913.92,"km_emp":29867.4,"km_temp":349781.32,"avg_km":206.73,"pend":6472003745.0,"biaya_ops":343934585.0,"tko":479870878.0,"kwh":408371.53,"rasio_bb":0.972,"temp_real":397063.0,"bdmi":1.0583},{"no":61,"bulan":"september","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":27.0,"jml_so":869.0,"jml_uo":812.0,"trip":9254,"km_prod":157272.45,"km_emp":11911.9,"km_temp":169184.35,"avg_km":208.36,"pend":3156980046.0,"biaya_ops":158041024.0,"tko":235908681.0,"kwh":208023.97,"rasio_bb":0.908,"temp_real":188893.0,"bdmi":1.0632},{"no":62,"bulan":"september","tahun":2025,"area":"klender","pks":200,"so":66.0,"uo":64.0,"jml_so":1981.0,"jml_uo":1932.0,"trip":17543,"km_prod":371327.18,"km_emp":32606.67,"km_temp":403933.85,"avg_km":209.08,"pend":7948206424.0,"biaya_ops":417944017.0,"tko":556990775.0,"kwh":475336.0,"rasio_bb":0.96,"temp_real":456126.0,"bdmi":1.0122},{"no":63,"bulan":"september","tahun":2025,"area":"cawang","pks":200,"so":49.0,"uo":46.0,"jml_so":1468.0,"jml_uo":1379.0,"trip":16506,"km_prod":254430.49,"km_emp":22603.0,"km_temp":277033.49,"avg_km":200.89,"pend":5451188022.0,"biaya_ops":314856185.0,"tko":381645738.0,"kwh":372013.93,"rasio_bb":0.784,"temp_real":291797.0,"bdmi":null},{"no":64,"bulan":"september","tahun":2025,"area":"cakung","pks":120,"so":105.0,"uo":102.0,"jml_so":3158.0,"jml_uo":3056.0,"trip":36304,"km_prod":516986.97,"km_emp":59513.9,"km_temp":576500.87,"avg_km":188.65,"pend":8347156097.0,"biaya_ops":2355755329.0,"tko":775480455.0,"kwh":327234.86,"rasio_bb":2.184,"temp_real":714652.0,"bdmi":null},{"no":65,"bulan":"oktober","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":751.0,"jml_uo":744.0,"trip":7539,"km_prod":131291.16,"km_emp":5031.0,"km_temp":136322.16,"avg_km":183.23,"pend":3265870083.0,"biaya_ops":117839498.0,"tko":196936746.0,"kwh":161203.14,"rasio_bb":0.911,"temp_real":146930.0,"bdmi":1.0435},{"no":66,"bulan":"oktober","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1769.0,"jml_uo":1767.0,"trip":20328,"km_prod":336294.56,"km_emp":30183.0,"km_temp":366477.56,"avg_km":207.4,"pend":6780934311.0,"biaya_ops":367767555.0,"tko":504441842.0,"kwh":441762.05,"rasio_bb":0.941,"temp_real":415503.0,"bdmi":1.0594},{"no":67,"bulan":"oktober","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":907.0,"jml_uo":861.0,"trip":10123,"km_prod":168454.9,"km_emp":12753.0,"km_temp":181207.9,"avg_km":210.46,"pend":3381339414.0,"biaya_ops":175432953.0,"tko":252682350.0,"kwh":441762.05,"rasio_bb":0.941,"temp_real":415503.0,"bdmi":1.0105},{"no":68,"bulan":"oktober","tahun":2025,"area":"klender","pks":200,"so":64.0,"uo":63.0,"jml_so":1987.0,"jml_uo":1958.0,"trip":17263,"km_prod":368067.95,"km_emp":36052.33,"km_temp":404120.27,"avg_km":206.39,"pend":7951874559.0,"biaya_ops":433556672.0,"tko":552101918.0,"kwh":487262.2,"rasio_bb":0.958,"temp_real":466617.0,"bdmi":1.0427},{"no":69,"bulan":"oktober","tahun":2025,"area":"cawang","pks":200,"so":48.0,"uo":47.0,"jml_so":1503.0,"jml_uo":1465.0,"trip":15247,"km_prod":268638.3,"km_emp":25042.0,"km_temp":293680.3,"avg_km":200.46,"pend":5778747165.0,"biaya_ops":337546860.0,"tko":402957442.0,"kwh":382857.54,"rasio_bb":0.8,"temp_real":306437.0,"bdmi":null},{"no":70,"bulan":"oktober","tahun":2025,"area":"cakung","pks":120,"so":106.0,"uo":103.0,"jml_so":3287.0,"jml_uo":3206.0,"trip":38181,"km_prod":538832.27,"km_emp":62375.0,"km_temp":601207.27,"avg_km":187.53,"pend":8704880077.0,"biaya_ops":2549772674.0,"tko":808248406.0,"kwh":354214.54,"rasio_bb":2.104,"temp_real":745250.0,"bdmi":null},{"no":71,"bulan":"oktober","tahun":2025,"area":"ciputat","pks":200,"so":5.0,"uo":4.0,"jml_so":56.0,"jml_uo":53.0,"trip":439,"km_prod":10515.01,"km_emp":644.0,"km_temp":11159.01,"avg_km":210.55,"pend":219575781.0,"biaya_ops":10242705.0,"tko":15772510.0,"kwh":14011.91,"rasio_bb":0.831,"temp_real":11638.0,"bdmi":null},{"no":72,"bulan":"november","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":23.0,"jml_so":734.0,"jml_uo":535.0,"trip":5671,"km_prod":100298.96,"km_emp":3724.0,"km_temp":104022.96,"avg_km":194.44,"pend":2492078005.0,"biaya_ops":87176555.0,"tko":150448437.0,"kwh":119256.57,"rasio_bb":0.934,"temp_real":111422.0,"bdmi":1.0071},{"no":73,"bulan":"november","tahun":2025,"area":"pupar","pks":60,"so":58.0,"uo":57.0,"jml_so":1731.0,"jml_uo":1710.0,"trip":19898,"km_prod":329486.86,"km_emp":29584.0,"km_temp":359070.86,"avg_km":209.98,"pend":6643888123.0,"biaya_ops":352846473.0,"tko":494230290.0,"kwh":420432.93,"rasio_bb":0.963,"temp_real":404714.0,"bdmi":1.0621},{"no":74,"bulan":"november","tahun":2025,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":887.0,"jml_uo":836.0,"trip":9471,"km_prod":170619.98,"km_emp":11592.6,"km_temp":182212.58,"avg_km":217.96,"pend":3400086780.0,"biaya_ops":173720714.0,"tko":255929973.0,"kwh":226715.07,"rasio_bb":0.889,"temp_real":201513.0,"bdmi":1.0684},{"no":75,"bulan":"november","tahun":2025,"area":"klender","pks":200,"so":66.0,"uo":64.0,"jml_so":1970.0,"jml_uo":1915.0,"trip":18137,"km_prod":374518.54,"km_emp":34179.0,"km_temp":408697.54,"avg_km":213.42,"pend":8041941430.0,"biaya_ops":426730790.0,"tko":561777802.0,"kwh":499959.36,"rasio_bb":0.931,"temp_real":465346.0,"bdmi":1.0006},{"no":76,"bulan":"november","tahun":2025,"area":"cawang","pks":200,"so":48.0,"uo":47.0,"jml_so":1428.0,"jml_uo":1395.0,"trip":14221,"km_prod":259739.49,"km_emp":25250.0,"km_temp":284989.49,"avg_km":204.29,"pend":5607738136.0,"biaya_ops":314932057.0,"tko":389609230.0,"kwh":353024.7,"rasio_bb":0.857,"temp_real":302391.0,"bdmi":null},{"no":77,"bulan":"november","tahun":2025,"area":"ciputat","pks":200,"so":14.0,"uo":13.0,"jml_so":408.0,"jml_uo":397.0,"trip":3106,"km_prod":79947.8,"km_emp":7387.0,"km_temp":87334.8,"avg_km":219.99,"pend":1718486938.0,"biaya_ops":122557289.0,"tko":119921706.0,"kwh":115768.52,"rasio_bb":0.802,"temp_real":92822.0,"bdmi":null},{"no":78,"bulan":"november","tahun":2025,"area":"cakung","pks":120,"so":97.0,"uo":93.0,"jml_so":2904.0,"jml_uo":2783.0,"trip":33797,"km_prod":469232.12,"km_emp":53534.5,"km_temp":522766.62,"avg_km":187.84,"pend":7569137848.0,"biaya_ops":2068813304.0,"tko":703848176.0,"kwh":293567.18,"rasio_bb":2.183,"temp_real":640947.0,"bdmi":null},{"no":79,"bulan":"desember","tahun":2025,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":740.0,"jml_uo":740.0,"trip":8323,"km_prod":143214.73,"km_emp":6698.0,"km_temp":149912.73,"avg_km":202.58,"pend":3595577157.0,"biaya_ops":119821654.0,"tko":214822089.0,"kwh":163914.71,"rasio_bb":0.987,"temp_real":161756.0,"bdmi":1.0037},{"no":80,"bulan":"desember","tahun":2025,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1761.0,"jml_uo":1754.0,"trip":20815,"km_prod":347912.33,"km_emp":30545.0,"km_temp":378457.33,"avg_km":215.77,"pend":7230520132.0,"biaya_ops":355833625.0,"tko":521868501.0,"kwh":423000.17,"rasio_bb":0.994,"temp_real":420439.0,"bdmi":1.0584},{"no":81,"bulan":"desember","tahun":2025,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":900.0,"jml_uo":864.0,"trip":10173,"km_prod":181912.68,"km_emp":11976.6,"km_temp":193889.28,"avg_km":224.41,"pend":3662265778.0,"biaya_ops":175962618.0,"tko":272869016.0,"kwh":230116.44,"rasio_bb":0.929,"temp_real":213795.0,"bdmi":1.0662},{"no":82,"bulan":"desember","tahun":2025,"area":"klender","pks":200,"so":67.0,"uo":64.0,"jml_so":2073.0,"jml_uo":1996.0,"trip":19925,"km_prod":412303.79,"km_emp":32533.99,"km_temp":444837.78,"avg_km":222.86,"pend":8753072944.0,"biaya_ops":414212007.0,"tko":618455678.0,"kwh":487391.56,"rasio_bb":1.036,"temp_real":505132.0,"bdmi":1.0576},{"no":83,"bulan":"desember","tahun":2025,"area":"cawang","pks":200,"so":47.0,"uo":46.0,"jml_so":1465.0,"jml_uo":1435.0,"trip":15704,"km_prod":281237.05,"km_emp":25840.0,"km_temp":307077.05,"avg_km":213.99,"pend":6042355054.0,"biaya_ops":341575601.0,"tko":421855570.0,"kwh":361988.51,"rasio_bb":0.896,"temp_real":324211.0,"bdmi":null},{"no":84,"bulan":"desember","tahun":2025,"area":"ciputat","pks":200,"so":36.0,"uo":35.0,"jml_so":1105.0,"jml_uo":1097.0,"trip":11224,"km_prod":217978.22,"km_emp":21673.0,"km_temp":239651.22,"avg_km":218.46,"pend":4715616997.0,"biaya_ops":311867401.0,"tko":326967326.0,"kwh":313955.82,"rasio_bb":0.834,"temp_real":261943.0,"bdmi":null},{"no":85,"bulan":"desember","tahun":2025,"area":"cakung","pks":120,"so":75.0,"uo":64.0,"jml_so":2339.0,"jml_uo":1972.0,"trip":26879,"km_prod":330506.25,"km_emp":38328.1,"km_temp":368834.35,"avg_km":187.04,"pend":5340352525.0,"biaya_ops":1508620721.0,"tko":495759372.0,"kwh":215989.66,"rasio_bb":2.083,"temp_real":449808.0,"bdmi":null},{"no":86,"bulan":"januari","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":752.0,"jml_uo":744.0,"trip":8922,"km_prod":151254.23,"km_emp":7392.0,"km_temp":158646.23,"avg_km":213.23,"pend":3814965989.0,"biaya_ops":135580576.0,"tko":226881351.0,"kwh":165062.35,"rasio_bb":1.032,"temp_real":170415.0,"bdmi":1.0542},{"no":87,"bulan":"januari","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1760.0,"jml_uo":1755.0,"trip":19918,"km_prod":333632.42,"km_emp":30384.2,"km_temp":364016.62,"avg_km":207.42,"pend":7113612710.0,"biaya_ops":335573894.0,"tko":500448624.0,"kwh":395611.35,"rasio_bb":1.031,"temp_real":408011.0,"bdmi":1.0575},{"no":88,"bulan":"januari","tahun":2026,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":920.0,"jml_uo":868.0,"trip":9670,"km_prod":172570.0,"km_emp":12057.2,"km_temp":184627.2,"avg_km":212.7,"pend":3607800115.0,"biaya_ops":164181105.0,"tko":258855000.0,"kwh":216086.33,"rasio_bb":0.947,"temp_real":204600.0,"bdmi":1.0698},{"no":89,"bulan":"januari","tahun":2026,"area":"klender","pks":200,"so":68.0,"uo":65.0,"jml_so":2105.0,"jml_uo":2012.0,"trip":21539,"km_prod":405649.03,"km_emp":35299.81,"km_temp":440948.84,"avg_km":219.16,"pend":8676550380.0,"biaya_ops":394640612.0,"tko":608473545.0,"kwh":465704.12,"rasio_bb":1.086,"temp_real":505804.0,"bdmi":0.9484},{"no":90,"bulan":"januari","tahun":2026,"area":"cawang","pks":200,"so":48.0,"uo":46.0,"jml_so":1487.0,"jml_uo":1441.0,"trip":16760,"km_prod":274879.59,"km_emp":26570.0,"km_temp":301449.59,"avg_km":209.19,"pend":5931623484.0,"biaya_ops":338660054.0,"tko":412319378.0,"kwh":338770.94,"rasio_bb":0.94,"temp_real":318479.0,"bdmi":null},{"no":91,"bulan":"januari","tahun":2026,"area":"ciputat","pks":200,"so":47.0,"uo":47.0,"jml_so":1457.0,"jml_uo":1454.0,"trip":15140,"km_prod":256010.0,"km_emp":28799.0,"km_temp":284809.0,"avg_km":195.88,"pend":5604186732.0,"biaya_ops":355753758.0,"tko":384015003.0,"kwh":366364.09,"rasio_bb":0.859,"temp_real":314711.0,"bdmi":null},{"no":92,"bulan":"januari","tahun":2026,"area":"cakung","pks":120,"so":41.0,"uo":18.0,"jml_so":1273.0,"jml_uo":563.0,"trip":6981,"km_prod":94770.97,"km_emp":11260.0,"km_temp":106030.97,"avg_km":188.33,"pend":1535222444.0,"biaya_ops":445952081.0,"tko":142156458.0,"kwh":63646.11,"rasio_bb":1.998,"temp_real":127148.0,"bdmi":null},{"no":93,"bulan":"februari","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":680.0,"jml_uo":672.0,"trip":8087,"km_prod":137146.28,"km_emp":6545.0,"km_temp":143691.28,"avg_km":213.83,"pend":3455344234.0,"biaya_ops":110229357.0,"tko":205719422.0,"kwh":150792.55,"rasio_bb":1.021,"temp_real":153981.0,"bdmi":1.0514},{"no":94,"bulan":"februari","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1589.0,"jml_uo":1588.0,"trip":18054,"km_prod":304934.09,"km_emp":27523.0,"km_temp":332457.09,"avg_km":209.36,"pend":6496876492.0,"biaya_ops":308079052.0,"tko":457401138.0,"kwh":364307.18,"rasio_bb":1.028,"temp_real":374411.0,"bdmi":1.0575},{"no":95,"bulan":"februari","tahun":2026,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":821.0,"jml_uo":784.0,"trip":8754,"km_prod":156390.3,"km_emp":10822.0,"km_temp":167212.3,"avg_km":213.28,"pend":3267495515.0,"biaya_ops":152872127.0,"tko":234585447.0,"kwh":200069.94,"rasio_bb":0.927,"temp_real":185469.0,"bdmi":1.0672},{"no":96,"bulan":"februari","tahun":2026,"area":"klender","pks":200,"so":68.0,"uo":66.0,"jml_so":1908.0,"jml_uo":1855.0,"trip":19510,"km_prod":367123.06,"km_emp":32721.99,"km_temp":399845.05,"avg_km":215.55,"pend":7867751027.0,"biaya_ops":387839442.0,"tko":550684582.0,"kwh":449049.17,"rasio_bb":1.014,"temp_real":455557.0,"bdmi":1.0631},{"no":97,"bulan":"februari","tahun":2026,"area":"cawang","pks":200,"so":48.0,"uo":48.0,"jml_so":1343.0,"jml_uo":1336.0,"trip":16151,"km_prod":250217.24,"km_emp":24835.0,"km_temp":275052.24,"avg_km":205.88,"pend":5412202848.0,"biaya_ops":297258106.0,"tko":375325854.0,"kwh":302883.18,"rasio_bb":0.968,"temp_real":293198.0,"bdmi":null},{"no":98,"bulan":"februari","tahun":2026,"area":"ciputat","pks":200,"so":48.0,"uo":48.0,"jml_so":1343.0,"jml_uo":1342.0,"trip":13731,"km_prod":241545.3,"km_emp":26585.0,"km_temp":268130.3,"avg_km":199.8,"pend":5275999854.0,"biaya_ops":342655788.0,"tko":362317946.0,"kwh":342064.69,"rasio_bb":0.86,"temp_real":294196.0,"bdmi":null},{"no":99,"bulan":"maret","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":23.0,"jml_so":742.0,"jml_uo":703.0,"trip":8475,"km_prod":143596.97,"km_emp":6740.0,"km_temp":150336.97,"avg_km":213.85,"pend":3615152997.0,"biaya_ops":116039860.0,"tko":215395448.0,"kwh":158741.26,"rasio_bb":1.018,"temp_real":161635.0,"bdmi":1.0507},{"no":100,"bulan":"maret","tahun":2026,"area":"pupar","pks":60,"so":56.0,"uo":54.0,"jml_so":1746.0,"jml_uo":1687.0,"trip":18638,"km_prod":316729.99,"km_emp":29750.0,"km_temp":346479.99,"avg_km":205.38,"pend":6770911867.0,"biaya_ops":315559088.0,"tko":475094978.0,"kwh":372320.91,"rasio_bb":1.046,"temp_real":389425.0,"bdmi":1.0551},{"no":101,"bulan":"maret","tahun":2026,"area":"klender","pks":30,"so":29.0,"uo":27.0,"jml_so":907.0,"jml_uo":828.0,"trip":9606,"km_prod":159219.84,"km_emp":11922.4,"km_temp":171142.24,"avg_km":206.69,"pend":3344290590.0,"biaya_ops":145107665.0,"tko":238829766.0,"kwh":195344.96,"rasio_bb":0.962,"temp_real":187954.0,"bdmi":1.0659},{"no":102,"bulan":"maret","tahun":2026,"area":"klender","pks":200,"so":68.0,"uo":63.0,"jml_so":2108.0,"jml_uo":1951.0,"trip":22519,"km_prod":398676.1,"km_emp":34593.89,"km_temp":433269.99,"avg_km":222.08,"pend":8525453619.0,"biaya_ops":419472074.0,"tko":598014158.0,"kwh":495991.89,"rasio_bb":0.998,"temp_real":494872.0,"bdmi":1.0089},{"no":103,"bulan":"maret","tahun":2026,"area":"cawang","pks":200,"so":48.0,"uo":46.0,"jml_so":1477.0,"jml_uo":1440.0,"trip":18866,"km_prod":274634.09,"km_emp":26246.0,"km_temp":300880.09,"avg_km":208.94,"pend":5920417629.0,"biaya_ops":331907839.0,"tko":411951142.0,"kwh":346491.57,"rasio_bb":0.915,"temp_real":317009.0,"bdmi":null},{"no":104,"bulan":"maret","tahun":2026,"area":"ciputat","pks":200,"so":47.0,"uo":47.0,"jml_so":1455.0,"jml_uo":1446.0,"trip":15118,"km_prod":275841.27,"km_emp":28635.0,"km_temp":304476.27,"avg_km":210.56,"pend":5991179565.0,"biaya_ops":363590584.0,"tko":413761905.0,"kwh":370523.37,"rasio_bb":0.908,"temp_real":336543.0,"bdmi":null},{"no":105,"bulan":"april","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":723.0,"jml_uo":720.0,"trip":8517,"km_prod":144860.5,"km_emp":6936.0,"km_temp":151796.5,"avg_km":210.83,"pend":3650250363.0,"biaya_ops":122690793.0,"tko":217290746.0,"kwh":167839.66,"rasio_bb":0.97,"temp_real":162787.0,"bdmi":1.0525},{"no":106,"bulan":"april","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1707.0,"jml_uo":1695.0,"trip":19428,"km_prod":323401.1,"km_emp":30088.2,"km_temp":353489.3,"avg_km":208.55,"pend":6907887901.0,"biaya_ops":338264319.0,"tko":485101650.0,"kwh":401547.63,"rasio_bb":0.986,"temp_real":395984.0,"bdmi":1.0346},{"no":107,"bulan":"april","tahun":2026,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":890.0,"jml_uo":839.0,"trip":10137,"km_prod":168120.96,"km_emp":12159.3,"km_temp":180280.26,"avg_km":214.88,"pend":3522856619.0,"biaya_ops":168412632.0,"tko":252181444.0,"kwh":228262.15,"rasio_bb":0.874,"temp_real":199594.0,"bdmi":1.0696},{"no":108,"bulan":"april","tahun":2026,"area":"klender","pks":200,"so":67.0,"uo":66.0,"jml_so":2005.0,"jml_uo":1988.0,"trip":22662,"km_prod":408018.64,"km_emp":34393.84,"km_temp":442412.47,"avg_km":222.54,"pend":8705350247.0,"biaya_ops":460131886.0,"tko":612027957.0,"kwh":549754.97,"rasio_bb":0.914,"temp_real":502215.0,"bdmi":1.0182},{"no":109,"bulan":"april","tahun":2026,"area":"cawang","pks":200,"so":48.0,"uo":48.0,"jml_so":1441.0,"jml_uo":1438.0,"trip":16934,"km_prod":281949.64,"km_emp":26101.0,"km_temp":308050.64,"avg_km":214.22,"pend":6061512384.0,"biaya_ops":364536908.0,"tko":422924456.0,"kwh":347898.64,"rasio_bb":0.94,"temp_real":327154.0,"bdmi":null},{"no":110,"bulan":"april","tahun":2026,"area":"ciputat","pks":200,"so":62.0,"uo":60.0,"jml_so":1846.0,"jml_uo":1809.0,"trip":18911,"km_prod":342207.27,"km_emp":35830.0,"km_temp":378037.27,"avg_km":208.98,"pend":7438639401.0,"biaya_ops":476711512.0,"tko":513310908.0,"kwh":497235.99,"rasio_bb":0.848,"temp_real":421778.0,"bdmi":null},{"no":111,"bulan":"mei","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":745.0,"jml_uo":744.0,"trip":8798,"km_prod":148484.21,"km_emp":7604.0,"km_temp":156088.21,"avg_km":209.8,"pend":3753453114.0,"biaya_ops":123235221.0,"tko":222726310.0,"kwh":168584.43,"rasio_bb":0.993,"temp_real":167454.0,"bdmi":1.0652},{"no":112,"bulan":"mei","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1759.0,"jml_uo":1759.0,"trip":21006,"km_prod":351078.84,"km_emp":30606.2,"km_temp":381685.04,"avg_km":216.99,"pend":7458889130.0,"biaya_ops":365667749.0,"tko":526618266.0,"kwh":427444.94,"rasio_bb":0.993,"temp_real":424533.0,"bdmi":1.0602},{"no":113,"bulan":"mei","tahun":2026,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":920.0,"jml_uo":868.0,"trip":10816,"km_prod":178381.25,"km_emp":11996.6,"km_temp":190377.85,"avg_km":219.33,"pend":3720173528.0,"biaya_ops":171175748.0,"tko":267571872.0,"kwh":233103.62,"rasio_bb":0.897,"temp_real":209051.0,"bdmi":1.07},{"no":114,"bulan":"mei","tahun":2026,"area":"klender","pks":200,"so":67.0,"uo":66.0,"jml_so":2085.0,"jml_uo":2049.0,"trip":22674,"km_prod":427374.94,"km_emp":35773.72,"km_temp":463148.66,"avg_km":226.04,"pend":9113376197.0,"biaya_ops":456725242.0,"tko":641062416.0,"kwh":547873.46,"rasio_bb":0.973,"temp_real":533052.0,"bdmi":1.0543},{"no":115,"bulan":"mei","tahun":2026,"area":"cawang","pks":200,"so":48.0,"uo":48.0,"jml_so":1488.0,"jml_uo":1486.0,"trip":17613,"km_prod":302408.78,"km_emp":27918.0,"km_temp":330326.78,"avg_km":222.29,"pend":6499840129.0,"biaya_ops":402821777.0,"tko":453613176.0,"kwh":374105.03,"rasio_bb":0.94,"temp_real":351794.0,"bdmi":null},{"no":116,"bulan":"mei","tahun":2026,"area":"ciputat","pks":200,"so":72.0,"uo":72.0,"jml_so":2247.0,"jml_uo":2227.0,"trip":23505,"km_prod":427762.04,"km_emp":44100.0,"km_temp":471862.04,"avg_km":211.88,"pend":9284829440.0,"biaya_ops":587981236.0,"tko":641643066.0,"kwh":621555.73,"rasio_bb":0.845,"temp_real":525189.0,"bdmi":null},{"no":117,"bulan":"juni","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":720.0,"jml_uo":720.0,"trip":8438,"km_prod":142833.08,"km_emp":6598.0,"km_temp":149431.08,"avg_km":207.54,"pend":3593369277.0,"biaya_ops":119997204.0,"tko":214249626.0,"kwh":164154.86,"rasio_bb":0.982,"temp_real":161144.0,"bdmi":1.0635},{"no":118,"bulan":"juni","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1698.0,"jml_uo":1698.0,"trip":20606,"km_prod":338876.0,"km_emp":29718.2,"km_temp":368594.2,"avg_km":217.08,"pend":7203067778.0,"biaya_ops":360772804.0,"tko":508313994.0,"kwh":423646.79,"rasio_bb":0.969,"temp_real":410529.0,"bdmi":1.0636},{"no":119,"bulan":"juni","tahun":2026,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":876.0,"jml_uo":840.0,"trip":10936,"km_prod":178596.68,"km_emp":11595.5,"km_temp":190192.18,"avg_km":226.42,"pend":3716545428.0,"biaya_ops":173834687.0,"tko":267895023.0,"kwh":235453.74,"rasio_bb":0.886,"temp_real":208597.0,"bdmi":1.07},{"no":120,"bulan":"juni","tahun":2026,"area":"klender","pks":200,"so":67.0,"uo":66.0,"jml_so":2001.0,"jml_uo":1980.0,"trip":21138,"km_prod":422896.75,"km_emp":34444.78,"km_temp":457341.53,"avg_km":230.98,"pend":8999109365.0,"biaya_ops":474104958.0,"tko":634345128.0,"kwh":555535.51,"rasio_bb":0.962,"temp_real":534586.0,"bdmi":1.0623},{"no":121,"bulan":"juni","tahun":2026,"area":"cawang","pks":200,"so":47.0,"uo":47.0,"jml_so":1418.0,"jml_uo":1410.0,"trip":16988,"km_prod":292606.39,"km_emp":26937.0,"km_temp":319543.39,"avg_km":226.63,"pend":6287655285.0,"biaya_ops":386295489.0,"tko":438909585.0,"kwh":368701.08,"rasio_bb":0.928,"temp_real":342213.0,"bdmi":null},{"no":122,"bulan":"juni","tahun":2026,"area":"ciputat","pks":200,"so":70.0,"uo":70.0,"jml_so":2108.0,"jml_uo":2100.0,"trip":21508,"km_prod":417418.61,"km_emp":41507.0,"km_temp":458925.61,"avg_km":218.54,"pend":9030279287.0,"biaya_ops":585926264.0,"tko":626127920.0,"kwh":586786.96,"rasio_bb":0.868,"temp_real":509282.0,"bdmi":null},{"no":123,"bulan":"juli","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":744.0,"jml_uo":744.0,"trip":8656,"km_prod":147806.94,"km_emp":6389.0,"km_temp":154195.94,"avg_km":207.25,"pend":3707949745.0,"biaya_ops":121766613.0,"tko":221710408.0,"kwh":166575.39,"rasio_bb":0.997,"temp_real":166042.0,"bdmi":null},{"no":124,"bulan":"juli","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1754.0,"jml_uo":1754.0,"trip":21410,"km_prod":348055.2,"km_emp":30852.0,"km_temp":378907.2,"avg_km":216.02,"pend":7404604405.0,"biaya_ops":369109760.0,"tko":522082792.0,"kwh":434645.36,"rasio_bb":0.971,"temp_real":421845.0,"bdmi":null},{"no":125,"bulan":"juli","tahun":2026,"area":"klender","pks":30,"so":29.0,"uo":28.0,"jml_so":856.0,"jml_uo":856.0,"trip":10989,"km_prod":178366.84,"km_emp":12050.1,"km_temp":190416.94,"avg_km":222.45,"pend":3720937346.0,"biaya_ops":170523313.0,"tko":267550254.0,"kwh":231118.76,"rasio_bb":0.915,"temp_real":211571.0,"bdmi":null},{"no":126,"bulan":"juli","tahun":2026,"area":"klender","pks":200,"so":66.0,"uo":66.0,"jml_so":2035.0,"jml_uo":2035.0,"trip":20897,"km_prod":443356.85,"km_emp":35977.89,"km_temp":479334.74,"avg_km":235.55,"pend":9561769447.0,"biaya_ops":491413446.0,"tko":665035274.0,"kwh":560458.89,"rasio_bb":1.011,"temp_real":566747.0,"bdmi":null},{"no":127,"bulan":"juli","tahun":2026,"area":"cawang","pks":200,"so":47.0,"uo":47.0,"jml_so":1443.0,"jml_uo":1443.0,"trip":18323,"km_prod":292946.07,"km_emp":27244.0,"km_temp":320190.07,"avg_km":221.89,"pend":6387151516.0,"biaya_ops":393681884.0,"tko":439419105.0,"kwh":368698.88,"rasio_bb":0.915,"temp_real":337184.0,"bdmi":null},{"no":128,"bulan":"juli","tahun":2026,"area":"ciputat","pks":200,"so":72.0,"uo":71.0,"jml_so":2202.0,"jml_uo":2202.0,"trip":22198,"km_prod":434012.15,"km_emp":43569.0,"km_temp":477581.15,"avg_km":216.89,"pend":9526788720.0,"biaya_ops":626872387.0,"tko":651018220.0,"kwh":620761.13,"rasio_bb":0.862,"temp_real":535121.0,"bdmi":null},{"no":129,"bulan":"agustus","tahun":2026,"area":"pupar","pks":26,"so":24.0,"uo":24.0,"jml_so":744.0,"jml_uo":744.0,"trip":8582,"km_prod":145732.01,"km_emp":6542.0,"km_temp":152274.01,"avg_km":204.67,"pend":3661733167.0,"biaya_ops":122610074.0,"tko":218598018.0,"kwh":167729.24,"rasio_bb":0.98,"temp_real":164297.0,"bdmi":null},{"no":130,"bulan":"agustus","tahun":2026,"area":"pupar","pks":60,"so":57.0,"uo":57.0,"jml_so":1758.0,"jml_uo":1754.0,"trip":21509,"km_prod":353143.83,"km_emp":30426.0,"km_temp":383569.83,"avg_km":218.68,"pend":7495721696.0,"biaya_ops":372602332.0,"tko":529715751.0,"kwh":436237.8,"rasio_bb":0.974,"temp_real":424768.0,"bdmi":null},{"no":131,"bulan":"agustus","tahun":2026,"area":"klender","pks":30,"so":30.0,"uo":28.0,"jml_so":921.0,"jml_uo":868.0,"trip":10830,"km_prod":190961.63,"km_emp":12453.9,"km_temp":203415.53,"avg_km":234.35,"pend":3974942833.0,"biaya_ops":205707962.0,"tko":286442442.0,"kwh":246117.59,"rasio_bb":0.935,"temp_real":230123.0,"bdmi":null},{"no":132,"bulan":"agustus","tahun":2026,"area":"klender","pks":200,"so":66.0,"uo":64.0,"jml_so":2037.0,"jml_uo":1977.0,"trip":20602,"km_prod":427555.4,"km_emp":34797.45,"km_temp":462352.85,"avg_km":233.87,"pend":9223014740.0,"biaya_ops":519173174.0,"tko":641333105.0,"kwh":549248.53,"rasio_bb":0.989,"temp_real":543352.0,"bdmi":null},{"no":133,"bulan":"agustus","tahun":2026,"area":"cawang","pks":200,"so":46.0,"uo":46.0,"jml_so":1433.0,"jml_uo":1416.0,"trip":17168,"km_prod":290375.23,"km_emp":27152.0,"km_temp":317527.23,"avg_km":224.24,"pend":6334033104.0,"biaya_ops":399838938.0,"tko":435562839.0,"kwh":363286.51,"rasio_bb":0.926,"temp_real":336539.0,"bdmi":null},{"no":134,"bulan":"agustus","tahun":2026,"area":"ciputat","pks":200,"so":71.0,"uo":71.0,"jml_so":2194.0,"jml_uo":2117.0,"trip":20806,"km_prod":409178.08,"km_emp":41972.0,"km_temp":451150.08,"avg_km":213.11,"pend":8999541756.0,"biaya_ops":602195988.0,"tko":613767117.0,"kwh":590255.11,"rasio_bb":0.868,"temp_real":512305.0,"bdmi":null}];
+
+    // =========================================================================
+    // 2. APPLICATION STATE
+    // =========================================================================
+    const state = {
+      activeTab: 'overview',
+      profitMode: 'opsi_b',      // 'opsi_a' | 'opsi_b' | 'opsi_c'
+      kmMode: 'baku',            // 'baku' | 'odo'
+      selectedPool: 'ALL',       // 'ALL' | 'KLD 70' | 'CPT' | 'PPR 60' | 'CWG 50' | 'KLD' | 'PPR 26'
+      overviewTrendScope: 'daily', // 'daily' | 'monthly'
+      poolChartMetric: 'pend',   // 'pend' | 'km'
+      miniLeaderMode: 'bus',     // 'bus' | 'kor'
+      dailySearch: '',
+      dailySort: 'tgl_asc',
+      histYear: 2026,
+      histPks: 'ALL',
+      histArea: 'ALL',
+      autoRotate: false,
+      autoRotateTimer: null,
+      darkMode: true
+    };
+
+    // Chart instances
+    let charts = {
+      overviewTrend: null,
+      overviewPool: null,
+      overviewEnergy: null,
+      dailyKmTrip: null,
+      dailyCost: null,
+      histRev: null,
+      histKm: null,
+      topBus: null,
+      topKor: null
+    };
+
+    // =========================================================================
+    // 3. FORMATTING HELPERS
+    // =========================================================================
+    function fmtRp(val) {
+      return 'Rp ' + Math.round(val || 0).toLocaleString('id-ID');
+    }
+    function fmtRpShort(val) {
+      const n = Number(val || 0);
+      if (Math.abs(n) >= 1e9) return 'Rp ' + (n / 1e9).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' M';
+      if (Math.abs(n) >= 1e6) return 'Rp ' + (n / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' Jt';
+      return fmtRp(n);
+    }
+    function fmtNum(val, dec = 0) {
+      return Number(val || 0).toLocaleString('id-ID', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    }
+
+    function getPoolCostAndProfit(poolObj, mode) {
+      const biayaA = poolObj.biaya_langsung;
+      const biayaB = poolObj.biaya_langsung + poolObj.tko;
+      const biayaC = poolObj.biaya_langsung + poolObj.tko + poolObj.apm;
+      if (mode === 'opsi_a') return { biaya: biayaA, laba: poolObj.pend - biayaA, label: 'Laba Operasional (Opsi A)' };
+      if (mode === 'opsi_c') return { biaya: biayaC, laba: poolObj.pend - biayaC, label: 'Selisih Bersih APM (Opsi C)' };
+      return { biaya: biayaB, laba: poolObj.pend - biayaB, label: 'Laba Operasional (Opsi B)' };
+    }
+
+    function getDailyCostAndProfit(dayObj, mode) {
+      if (mode === 'opsi_a') return { biaya: dayObj.biaya_langsung, laba: dayObj.laba_a };
+      if (mode === 'opsi_c') return { biaya: dayObj.biaya_langsung + dayObj.tko + dayObj.apm, laba: dayObj.laba_c };
+      return { biaya: dayObj.biaya_langsung + dayObj.tko, laba: dayObj.laba_b };
+    }
+
+    // =========================================================================
+    // 4. RENDER TOP 6 KPI CARDS
+    // =========================================================================
+    function renderTopKpis() {
+      const filteredPools = state.selectedPool === 'ALL'
+        ? POOLS_AUG
+        : POOLS_AUG.filter(p => p.code === state.selectedPool);
+
+      const totPend = filteredPools.reduce((acc, p) => acc + p.pend, 0);
+      const totBiayaLangsung = filteredPools.reduce((acc, p) => acc + p.biaya_langsung, 0);
+      const totTko = filteredPools.reduce((acc, p) => acc + p.tko, 0);
+      const totApm = filteredPools.reduce((acc, p) => acc + p.apm, 0);
+      const totKmProd = filteredPools.reduce((acc, p) => acc + p.km_prod, 0);
+      const totKmEmp = filteredPools.reduce((acc, p) => acc + p.km_emp, 0);
+      const totKmTemp = filteredPools.reduce((acc, p) => acc + p.km_temp, 0);
+      const totKmOdo = filteredPools.reduce((acc, p) => acc + p.km_odo, 0);
+      const totTrip = filteredPools.reduce((acc, p) => acc + p.trip, 0);
+      const totTripReg = filteredPools.reduce((acc, p) => acc + p.trip_reg, 0);
+      const totTripAmr = filteredPools.reduce((acc, p) => acc + p.trip_amr, 0);
+      const totSo = filteredPools.reduce((acc, p) => acc + p.so, 0);
+      const totSg = filteredPools.reduce((acc, p) => acc + p.sg, 0);
+      const totKwh = filteredPools.reduce((acc, p) => acc + p.kwh, 0);
+
+      let totBiaya = totBiayaLangsung + totTko;
+      let labaTitle = 'Laba Operasional (Opsi B)';
+      if (state.profitMode === 'opsi_a') {
+        totBiaya = totBiayaLangsung;
+        labaTitle = 'Laba Langsung (Opsi A)';
+      } else if (state.profitMode === 'opsi_c') {
+        totBiaya = totBiayaLangsung + totTko + totApm;
+        labaTitle = 'Selisih Bersih APM (Opsi C)';
+      }
+      const totLaba = totPend - totBiaya;
+      const marginPct = totPend > 0 ? (totLaba / totPend) * 100 : 0;
+      const bopoPct = totPend > 0 ? (totBiaya / totPend) * 100 : 0;
+
+      // KPI 1: Pendapatan
+      document.getElementById('kpi1Badge').textContent = state.selectedPool === 'ALL' ? '6 Pool Aktif' : state.selectedPool;
+      document.getElementById('kpi1Value').textContent = fmtRpShort(totPend);
+      document.getElementById('kpi1Sub').textContent = fmtRp(totPend);
+      document.getElementById('kpi1Avg').textContent = fmtRpShort(totPend / 31) + '/hr';
+
+      // KPI 2: Laba Operasional
+      document.getElementById('kpi2Title').textContent = labaTitle;
+      document.getElementById('kpi2Margin').textContent = 'Margin ' + fmtNum(marginPct, 1) + '%';
+      document.getElementById('kpi2Value').textContent = fmtRpShort(totLaba);
+      document.getElementById('kpi2Sub').textContent = 'Biaya: ' + fmtRpShort(totBiaya);
+      document.getElementById('kpi2Note').textContent = 'BOPO ' + fmtNum(bopoPct, 1) + '%';
+
+      // KPI 3: Jarak Tempuh
+      const isOdo = state.kmMode === 'odo';
+      const mainKm = isOdo ? totKmOdo : totKmTemp;
+      const prodPct = totKmTemp > 0 ? (totKmProd / totKmTemp) * 100 : 0;
+      document.getElementById('kpi3Title').textContent = isOdo ? 'Total KM Real (Odometer)' : 'Total KM Tempuh (Baku)';
+      document.getElementById('kpi3Badge').textContent = fmtNum(prodPct, 1) + '% Prod';
+      document.getElementById('kpi3Value').textContent = (mainKm / 1e6).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Jt km';
+      document.getElementById('kpi3Sub').textContent = 'Prod: ' + fmtNum(totKmProd, 0) + ' km';
+      document.getElementById('kpi3Emp').textContent = 'Emp: ' + fmtNum(totKmEmp, 0) + ' km';
+
+      // KPI 4: Trip
+      const regPct = totTrip > 0 ? (totTripReg / totTrip) * 100 : 0;
+      document.getElementById('kpi4Badge').textContent = fmtNum(regPct, 1) + '% Reguler';
+      document.getElementById('kpi4Value').textContent = fmtNum(totTrip, 0) + ' Trip';
+      document.getElementById('kpi4Sub').textContent = 'Reg: ' + fmtNum(totTripReg, 0) + ' | Amr: ' + fmtNum(totTripAmr, 0);
+      document.getElementById('kpi4Avg').textContent = fmtNum(totTrip / 31, 0) + '/hr';
+
+      // KPI 5: Rata-rata KM / Bus
+      const avgKmPerBus = totSo > 0 ? (mainKm / totSo) : 0;
+      const targetKm = state.selectedPool === 'PPR 26' ? 197 : 215;
+      document.getElementById('kpi5Badge').textContent = avgKmPerBus >= targetKm ? '↑ Di Atas Target' : '↓ Di Bawah Target';
+      document.getElementById('kpi5Badge').className = avgKmPerBus >= targetKm
+        ? 'px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300'
+        : 'px-2 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300';
+      document.getElementById('kpi5Value').textContent = fmtNum(avgKmPerBus, 2) + ' km';
+      document.getElementById('kpi5Sub').textContent = 'SO: ' + fmtNum(totSo, 0) + ' (' + fmtNum((totSo / totSg) * 100, 1) + '% SG)';
+      document.getElementById('kpi5Target').textContent = 'Target: ' + targetKm + ' km';
+
+      // KPI 6: Efisiensi Energi EV
+      const rasioOdo = totKwh > 0 ? (totKmOdo / totKwh) : 0;
+      const rasioBaku = totKwh > 0 ? (totKmProd / totKwh) : 0;
+      document.getElementById('kpi6Badge').textContent = rasioOdo >= 0.90 ? 'Aman (≥ 0,90)' : 'Perlu Evaluasi (< 0,90)';
+      document.getElementById('kpi6Badge').className = rasioOdo >= 0.90
+        ? 'px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300'
+        : 'px-2 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300';
+      document.getElementById('kpi6Value').textContent = fmtNum(rasioOdo, 2) + ' km/kWh';
+      document.getElementById('kpi6Sub').textContent = fmtNum(totKwh, 0) + ' kWh';
+      document.getElementById('kpi6Baku').textContent = 'Baku: ' + fmtNum(rasioBaku, 2);
+    }
+
+    // =========================================================================
+    // 5. RENDER OVERVIEW CHARTS & WIDGETS
+    // =========================================================================
+    function getChartColors() {
+      const isDark = state.darkMode;
+      return {
+        text: isDark ? '#CBD5E1' : '#334155',
+        grid: isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.25)'
+      };
+    }
+
+    function renderOverviewTrendChart() {
+      const ctx = document.getElementById('overviewTrendChart').getContext('2d');
+      if (charts.overviewTrend) charts.overviewTrend.destroy();
+      const c = getChartColors();
+
+      let labels = [];
+      let revData = [];
+      let costData = [];
+      let profitData = [];
+
+      if (state.overviewTrendScope === 'daily') {
+        document.getElementById('overviewTrendTitle').textContent =
+          'Tren Harian Pendapatan, Biaya & Laba Operasional (1–31 Agustus 2026)';
+        labels = DAILY_AUG.map(d => d.tgl + ' Agu');
+        DAILY_AUG.forEach(d => {
+          const cp = getDailyCostAndProfit(d, state.profitMode);
+          revData.push( +(d.pend / 1e9).toFixed(3) );
+          costData.push( +(cp.biaya / 1e9).toFixed(3) );
+          profitData.push( +(cp.laba / 1e9).toFixed(3) );
+        });
+      } else {
+        document.getElementById('overviewTrendTitle').textContent =
+          'Tren Bulanan Pendapatan, Biaya & Laba Operasional (Januari–Agustus 2026)';
+        const monthsOrder = ['januari','februari','maret','april','mei','juni','juli','agustus'];
+        const monthShort = ['Jan 26','Feb 26','Mar 26','Apr 26','Mei 26','Jun 26','Jul 26','Agu 26'];
+        labels = monthShort;
+        monthsOrder.forEach(m => {
+          const rows = MONTHLY_ROWS.filter(r => r.tahun === 2026 && r.bulan === m);
+          const pend = rows.reduce((a, r) => a + r.pend, 0);
+          const bOps = rows.reduce((a, r) => a + r.biaya_ops, 0);
+          const tko = rows.reduce((a, r) => a + r.tko, 0);
+          const kmT = rows.reduce((a, r) => a + r.km_temp, 0);
+          const estApm = kmT * 3150;
+          let biaya = bOps + tko;
+          if (state.profitMode === 'opsi_a') biaya = bOps;
+          if (state.profitMode === 'opsi_c') biaya = bOps + tko + estApm;
+          revData.push( +(pend / 1e9).toFixed(2) );
+          costData.push( +(biaya / 1e9).toFixed(2) );
+          profitData.push( +((pend - biaya) / 1e9).toFixed(2) );
+        });
+      }
+
+      charts.overviewTrend = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line',
+              label: 'Laba Operasional (Miliar Rp)',
+              data: profitData,
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              borderWidth: 3,
+              pointRadius: 3,
+              tension: 0.3,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'Pendapatan (Miliar Rp)',
+              data: revData,
+              backgroundColor: '#005BAC',
+              borderRadius: 5,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'Total Biaya (Miliar Rp)',
+              data: costData,
+              backgroundColor: '#F39200',
+              borderRadius: 5,
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: c.text, font: { size: 12, weight: '600' } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: Rp ${ctx.parsed.y.toLocaleString('id-ID')} Miliar`
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: c.text, font: { size: 11 } }, grid: { color: c.grid } },
+            y: {
+              ticks: {
+                color: c.text,
+                font: { size: 11 },
+                callback: (v) => 'Rp ' + v + ' M'
+              },
+              grid: { color: c.grid }
+            }
+          }
+        }
+      });
+    }
+
+    function renderOverviewPoolChart() {
+      const ctx = document.getElementById('overviewPoolChart').getContext('2d');
+      if (charts.overviewPool) charts.overviewPool.destroy();
+      const c = getChartColors();
+
+      const labels = POOLS_AUG.map(p => `${p.name} (${p.pks})`);
+      if (state.poolChartMetric === 'pend') {
+        const pendSeries = POOLS_AUG.map(p => +(p.pend / 1e9).toFixed(2));
+        const labaSeries = POOLS_AUG.map(p => +(getPoolCostAndProfit(p, state.profitMode).laba / 1e9).toFixed(2));
+        charts.overviewPool = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Pendapatan (Miliar Rp)',
+                data: pendSeries,
+                backgroundColor: '#005BAC',
+                borderRadius: 6
+              },
+              {
+                label: 'Laba Operasional (Miliar Rp)',
+                data: labaSeries,
+                backgroundColor: '#10B981',
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: c.text, font: { size: 12, weight: '600' } } }
+            },
+            scales: {
+              x: {
+                ticks: { color: c.text, callback: (v) => 'Rp ' + v + ' M' },
+                grid: { color: c.grid }
+              },
+              y: { ticks: { color: c.text, font: { size: 11, weight: '600' } }, grid: { display: false } }
+            }
+          }
+        });
+      } else {
+        const avgKmSeries = POOLS_AUG.map(p => state.kmMode === 'odo' ? +(p.km_odo / p.so).toFixed(2) : p.avg_km);
+        const targetSeries = POOLS_AUG.map(p => p.target_km);
+        charts.overviewPool = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: state.kmMode === 'odo' ? 'Rata-rata KM Odo / Bus' : 'Rata-rata KM Baku / Bus',
+                data: avgKmSeries,
+                backgroundColor: '#FFD100',
+                borderRadius: 6
+              },
+              {
+                label: 'Target Kontrak KM / Bus',
+                data: targetSeries,
+                backgroundColor: 'rgba(148, 163, 184, 0.45)',
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: c.text, font: { size: 12, weight: '600' } } }
+            },
+            scales: {
+              x: {
+                min: 150,
+                ticks: { color: c.text, callback: (v) => v + ' km' },
+                grid: { color: c.grid }
+              },
+              y: { ticks: { color: c.text, font: { size: 11, weight: '600' } }, grid: { display: false } }
+            }
+          }
+        });
+      }
+    }
+
+    function renderOverviewEnergyChart() {
+      const ctx = document.getElementById('overviewEnergyChart').getContext('2d');
+      if (charts.overviewEnergy) charts.overviewEnergy.destroy();
+      const c = getChartColors();
+
+      const labels = POOLS_AUG.map(p => p.code);
+      const dataVals = POOLS_AUG.map(p => state.kmMode === 'odo' ? p.rasio_odo : p.rasio_baku);
+      const barColors = dataVals.map(v => v >= 0.90 ? '#10B981' : '#F59E0B');
+
+      charts.overviewEnergy = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line',
+              label: 'Batas Target (0,90 km/kWh)',
+              data: labels.map(() => 0.90),
+              borderColor: '#FFD100',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointRadius: 0
+            },
+            {
+              type: 'bar',
+              label: state.kmMode === 'odo' ? 'Rasio Odometer (km/kWh)' : 'Rasio Baku (km/kWh)',
+              data: dataVals,
+              backgroundColor: barColors,
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: c.text, font: { size: 11, weight: '600' } } }
+          },
+          scales: {
+            x: { ticks: { color: c.text, font: { size: 11, weight: '600' } }, grid: { display: false } },
+            y: {
+              min: 0.65,
+              max: 1.10,
+              ticks: { color: c.text },
+              grid: { color: c.grid }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPksQuotaBars() {
+      const container = document.getElementById('pksQuotaContainer');
+      container.innerHTML = PKS_QUOTA.map(item => `
+        <div class="bg-slate-950/70 border border-slate-800/90 rounded-xl p-2.5">
+          <div class="flex items-center justify-between text-xs mb-1">
+            <span class="font-bold text-white">${item.pks}</span>
+            <span class="font-mono font-bold text-[#FFD100]">${fmtNum(item.pct, 2)}% Terpakai</span>
+          </div>
+          <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500" style="width: ${item.pct}%; background-color: ${item.color};"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-mono">
+            <span>Capaian: <strong class="text-slate-200">${fmtNum(item.cap, 0)} km</strong></span>
+            <span>Sisa Kuota: <strong class="text-sky-300">${fmtNum(item.sisa, 0)} km</strong></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMiniLeaderboard() {
+      const container = document.getElementById('miniLeaderboardList');
+      if (state.miniLeaderMode === 'bus') {
+        document.getElementById('miniLeaderTitle').textContent = 'Top 5 Armada Bus Terbaik (KM & Pendapatan)';
+        container.innerHTML = TOP_BUSES.slice(0, 5).map(b => `
+          <div class="flex items-center justify-between bg-slate-950/75 border border-slate-800/80 rounded-xl px-3 py-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#FFD100]/20 text-[#FFD100] font-mono font-bold text-xs flex items-center justify-center">#${b.rank}</span>
+              <div>
+                <div class="text-xs font-bold text-white">Bodi ${b.bodi} <span class="text-[11px] font-normal text-sky-400">(${b.area} • ${b.pks})</span></div>
+                <div class="text-[11px] text-slate-400">${b.trip} trip • Konsumsi ${fmtNum(b.kwh, 0)} kWh</div>
+              </div>
+            </div>
+            <div class="text-right font-mono">
+              <div class="text-xs font-bold text-emerald-400">${fmtRpShort(b.pend)}</div>
+              <div class="text-[11px] text-slate-300">${fmtNum(b.km_temp, 1)} km</div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('miniLeaderTitle').textContent = 'Top 5 Koridor Terbaik (KM & Pendapatan)';
+        container.innerHTML = TOP_CORRIDORS.slice(0, 5).map(k => `
+          <div class="flex items-center justify-between bg-slate-950/75 border border-slate-800/80 rounded-xl px-3 py-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-sky-500/20 text-sky-300 font-mono font-bold text-xs flex items-center justify-center">#${k.rank}</span>
+              <div>
+                <div class="text-xs font-bold text-white">Koridor ${k.kode} <span class="text-[11px] font-normal text-slate-300">(${k.rute})</span></div>
+                <div class="text-[11px] text-slate-400">${fmtNum(k.trip, 0)} trip • ${k.so} hari-bus</div>
+              </div>
+            </div>
+            <div class="text-right font-mono">
+              <div class="text-xs font-bold text-emerald-400">${fmtRpShort(k.pend)}</div>
+              <div class="text-[11px] text-slate-300">${fmtNum(k.km_temp, 0)} km</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // =========================================================================
+    // 6. RENDER VIEW 2: DAILY ANALYSIS (1-31 AGUSTUS 2026)
+    // =========================================================================
+    function renderDailyView() {
+      const c = getChartColors();
+      const labels = DAILY_AUG.map(d => d.tgl + ' Agu');
+
+      // Chart 1: KM Prod, KM Emp, Trip
+      const ctx1 = document.getElementById('dailyKmTripChart').getContext('2d');
+      if (charts.dailyKmTrip) charts.dailyKmTrip.destroy();
+      charts.dailyKmTrip = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line',
+              label: 'Total Trip Harian',
+              data: DAILY_AUG.map(d => d.trip),
+              borderColor: '#FFD100',
+              backgroundColor: '#FFD100',
+              borderWidth: 2.5,
+              pointRadius: 2.5,
+              yAxisID: 'y1'
+            },
+            {
+              type: 'bar',
+              label: 'KM Produksi',
+              data: DAILY_AUG.map(d => d.km_prod),
+              backgroundColor: '#005BAC',
+              stack: 'km',
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'KM Empty (Kosong)',
+              data: DAILY_AUG.map(d => d.km_emp),
+              backgroundColor: '#F39200',
+              stack: 'km',
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { stacked: true, ticks: { color: c.text, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { stacked: true, position: 'left', ticks: { color: c.text }, grid: { color: c.grid } },
+            y1: { position: 'right', ticks: { color: '#FFD100' }, grid: { display: false } }
+          }
+        }
+      });
+
+      // Chart 2: Daily Cost Breakdown
+      const ctx2 = document.getElementById('dailyCostChart').getContext('2d');
+      if (charts.dailyCost) charts.dailyCost.destroy();
+      charts.dailyCost = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Listrik / Energi (Juta Rp)',
+              data: DAILY_AUG.map(d => +(d.bb / 1e6).toFixed(1)),
+              backgroundColor: '#38BDF8',
+              stack: 'cost'
+            },
+            {
+              label: 'Tol & Cuci Bus (Juta Rp)',
+              data: DAILY_AUG.map(d => +((d.tol + d.cuci) / 1e6).toFixed(1)),
+              backgroundColor: '#F59E0B',
+              stack: 'cost'
+            },
+            {
+              label: 'TKO Pramudi (Juta Rp)',
+              data: DAILY_AUG.map(d => +(d.tko / 1e6).toFixed(1)),
+              backgroundColor: '#10B981',
+              stack: 'cost'
+            },
+            {
+              label: 'Beban APM EV (Juta Rp)',
+              data: DAILY_AUG.map(d => +(d.apm / 1e6).toFixed(1)),
+              backgroundColor: '#6366F1',
+              stack: 'cost'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { stacked: true, ticks: { color: c.text, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { stacked: true, ticks: { color: c.text, callback: (v) => 'Rp ' + v + ' Jt' }, grid: { color: c.grid } }
+          }
+        }
+      });
+
+      renderDailyTable();
+    }
+
+    function renderDailyTable() {
+      const q = state.dailySearch.trim().toLowerCase();
+      let rows = DAILY_AUG.filter(d => {
+        if (!q) return true;
+        return String(d.tgl).includes(q) || d.hari.toLowerCase().includes(q);
+      });
+
+      if (state.dailySort === 'pend_desc') rows.sort((a, b) => b.pend - a.pend);
+      else if (state.dailySort === 'km_desc') rows.sort((a, b) => b.km_temp - a.km_temp);
+      else if (state.dailySort === 'trip_desc') rows.sort((a, b) => b.trip - a.trip);
+      else rows.sort((a, b) => a.tgl - b.tgl);
+
+      const tbody = document.getElementById('dailyTableBody');
+      tbody.innerHTML = rows.map(d => {
+        const cp = getDailyCostAndProfit(d, state.profitMode);
+        return `
+          <tr class="hover:bg-slate-800/50">
+            <td class="py-2 px-3 font-bold text-white">${d.tgl} Agu</td>
+            <td class="py-2 px-3 font-sans text-slate-300">${d.hari}</td>
+            <td class="py-2 px-3 text-right text-slate-300">${d.sg} / ${d.sgo} / <strong class="text-sky-400">${d.so}</strong></td>
+            <td class="py-2 px-3 text-right font-bold text-[#FFD100]">${fmtNum(d.trip, 0)}</td>
+            <td class="py-2 px-3 text-right text-white">${fmtNum(d.km_temp, 2)}</td>
+            <td class="py-2 px-3 text-right text-slate-300">${fmtNum(d.km_odo, 0)}</td>
+            <td class="py-2 px-3 text-right text-sky-300">${fmtNum(d.avg_km, 2)}</td>
+            <td class="py-2 px-3 text-right font-bold text-white">${fmtRp(d.pend)}</td>
+            <td class="py-2 px-3 text-right text-rose-300">${fmtRp(d.biaya_langsung)}</td>
+            <td class="py-2 px-3 text-right text-amber-300">${fmtRp(d.tko)}</td>
+            <td class="py-2 px-3 text-right font-bold text-emerald-400">${fmtRp(cp.laba)}</td>
+            <td class="py-2 px-3 text-right text-emerald-300">${fmtNum(d.rasio_odo, 3)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 7. RENDER VIEW 3: MONTHLY & PKS HISTORICAL (2024 - 2026)
+    // =========================================================================
+    function renderMonthlyView() {
+      const yr = Number(state.histYear);
+      const pksFilter = state.histPks;
+      const areaFilter = state.histArea;
+
+      const filtered = MONTHLY_ROWS.filter(r => {
+        if (r.tahun !== yr) return false;
+        if (pksFilter !== 'ALL' && String(r.pks) !== String(pksFilter)) return false;
+        if (areaFilter !== 'ALL' && r.area !== areaFilter) return false;
+        return true;
+      });
+
+      const monthsOrder = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+      const activeMonths = monthsOrder.filter(m => filtered.some(r => r.bulan === m));
+
+      const aggByMonth = activeMonths.map(m => {
+        const mRows = filtered.filter(r => r.bulan === m);
+        const pend = mRows.reduce((a, r) => a + r.pend, 0);
+        const bOps = mRows.reduce((a, r) => a + r.biaya_ops, 0);
+        const tko = mRows.reduce((a, r) => a + r.tko, 0);
+        const kmTemp = mRows.reduce((a, r) => a + r.km_temp, 0);
+        const uo = mRows.reduce((a, r) => a + r.jml_uo, 0);
+        const trip = mRows.reduce((a, r) => a + r.trip, 0);
+        const biaya = state.profitMode === 'opsi_a' ? bOps : (bOps + tko);
+        return {
+          bulan: m.toUpperCase().slice(0, 3) + ' ' + String(yr).slice(-2),
+          pend,
+          biaya,
+          laba: pend - biaya,
+          kmTemp,
+          avgKm: uo > 0 ? kmTemp / uo : 0,
+          trip
+        };
+      });
+
+      const totPend = aggByMonth.reduce((a, m) => a + m.pend, 0);
+      const totBiaya = aggByMonth.reduce((a, m) => a + m.biaya, 0);
+      const totLaba = totPend - totBiaya;
+      const totKm = aggByMonth.reduce((a, m) => a + m.kmTemp, 0);
+      const totTrip = aggByMonth.reduce((a, m) => a + m.trip, 0);
+
+      document.getElementById('histSummaryCards').innerHTML = `
+        <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+          <div class="text-xs text-slate-400 uppercase font-bold">Total Pendapatan (${yr})</div>
+          <div class="font-display font-extrabold text-xl text-white mt-1">${fmtRpShort(totPend)}</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">${fmtRp(totPend)}</div>
+        </div>
+        <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+          <div class="text-xs text-emerald-400 uppercase font-bold">Total Laba (${yr})</div>
+          <div class="font-display font-extrabold text-xl text-emerald-400 mt-1">${fmtRpShort(totLaba)}</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Biaya: ${fmtRpShort(totBiaya)}</div>
+        </div>
+        <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+          <div class="text-xs text-sky-400 uppercase font-bold">Total KM Tempuh (${yr})</div>
+          <div class="font-display font-extrabold text-xl text-sky-400 mt-1">${fmtNum(totKm, 0)} km</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">${activeMonths.length} Bulan Operasional</div>
+        </div>
+        <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5">
+          <div class="text-xs text-[#FFD100] uppercase font-bold">Total Trip (${yr})</div>
+          <div class="font-display font-extrabold text-xl text-[#FFD100] mt-1">${fmtNum(totTrip, 0)} Trip</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Filter: PKS ${pksFilter} • Area ${areaFilter.toUpperCase()}</div>
+        </div>
+      `;
+
+      const c = getChartColors();
+
+      // Chart 1: Revenue vs Cost
+      const ctx1 = document.getElementById('histRevChart').getContext('2d');
+      if (charts.histRev) charts.histRev.destroy();
+      charts.histRev = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: aggByMonth.map(m => m.bulan),
+          datasets: [
+            {
+              type: 'line',
+              label: 'Laba Operasional (Miliar Rp)',
+              data: aggByMonth.map(m => +(m.laba / 1e9).toFixed(2)),
+              borderColor: '#10B981',
+              borderWidth: 3,
+              tension: 0.3
+            },
+            {
+              type: 'bar',
+              label: 'Pendapatan (Miliar Rp)',
+              data: aggByMonth.map(m => +(m.pend / 1e9).toFixed(2)),
+              backgroundColor: '#005BAC',
+              borderRadius: 5
+            },
+            {
+              type: 'bar',
+              label: 'Biaya (Miliar Rp)',
+              data: aggByMonth.map(m => +(m.biaya / 1e9).toFixed(2)),
+              backgroundColor: '#F39200',
+              borderRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+            y: { ticks: { color: c.text, callback: (v) => 'Rp ' + v + ' M' }, grid: { color: c.grid } }
+          }
+        }
+      });
+
+      // Chart 2: KM Tempuh & Avg KM
+      const ctx2 = document.getElementById('histKmChart').getContext('2d');
+      if (charts.histKm) charts.histKm.destroy();
+      charts.histKm = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: aggByMonth.map(m => m.bulan),
+          datasets: [
+            {
+              type: 'line',
+              label: 'Rata-rata KM / Bus',
+              data: aggByMonth.map(m => +m.avgKm.toFixed(2)),
+              borderColor: '#FFD100',
+              backgroundColor: '#FFD100',
+              borderWidth: 2.5,
+              yAxisID: 'y1'
+            },
+            {
+              type: 'bar',
+              label: 'Total KM Tempuh (Ribu km)',
+              data: aggByMonth.map(m => +(m.kmTemp / 1e3).toFixed(1)),
+              backgroundColor: '#38BDF8',
+              borderRadius: 5,
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: c.text, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+            y: { position: 'left', ticks: { color: c.text, callback: (v) => v + 'k' }, grid: { color: c.grid } },
+            y1: { position: 'right', ticks: { color: '#FFD100' }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // =========================================================================
+    // 8. RENDER VIEW 4: LEADERBOARD BUS & KORIDOR
+    // =========================================================================
+    function renderLeaderboardView() {
+      const c = getChartColors();
+
+      // Top 10 Bus Chart
+      const ctx1 = document.getElementById('topBusChart').getContext('2d');
+      if (charts.topBus) charts.topBus.destroy();
+      charts.topBus = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: TOP_BUSES.map(b => `Bodi ${b.bodi} (${b.area})`),
+          datasets: [
+            {
+              label: 'KM Tempuh (km)',
+              data: TOP_BUSES.map(b => b.km_temp),
+              backgroundColor: '#005BAC',
+              borderRadius: 5
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: c.text } } },
+          scales: {
+            x: { min: 8000, ticks: { color: c.text }, grid: { color: c.grid } },
+            y: { ticks: { color: c.text, font: { size: 11, weight: '600' } }, grid: { display: false } }
+          }
+        }
+      });
+
+      document.getElementById('topBusTableBody').innerHTML = TOP_BUSES.map(b => `
+        <tr class="hover:bg-slate-800/50">
+          <td class="py-2 px-2.5 font-bold text-[#FFD100]">#${b.rank}</td>
+          <td class="py-2 px-2.5 font-bold text-white">${b.bodi}</td>
+          <td class="py-2 px-2.5 font-sans text-sky-400">${b.area} • ${b.pks}</td>
+          <td class="py-2 px-2.5 text-right">${b.trip}</td>
+          <td class="py-2 px-2.5 text-right font-bold text-white">${fmtNum(b.km_temp, 2)} km</td>
+          <td class="py-2 px-2.5 text-right text-emerald-400">${fmtRp(b.pend)}</td>
+          <td class="py-2 px-2.5 text-right text-slate-300">${fmtRp(b.laba)}</td>
+        </tr>
+      `).join('');
+
+      // Top 10 Koridor Chart
+      const ctx2 = document.getElementById('topKorChart').getContext('2d');
+      if (charts.topKor) charts.topKor.destroy();
+      charts.topKor = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: TOP_CORRIDORS.map(k => `Kor ${k.kode}`),
+          datasets: [
+            {
+              label: 'KM Tempuh (km)',
+              data: TOP_CORRIDORS.map(k => k.km_temp),
+              backgroundColor: '#10B981',
+              borderRadius: 5
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: c.text } } },
+          scales: {
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+            y: { ticks: { color: c.text, font: { size: 11, weight: '600' } }, grid: { display: false } }
+          }
+        }
+      });
+
+      document.getElementById('topKorTableBody').innerHTML = TOP_CORRIDORS.map(k => `
+        <tr class="hover:bg-slate-800/50">
+          <td class="py-2 px-2.5 font-bold text-sky-400">#${k.rank}</td>
+          <td class="py-2 px-2.5 font-bold text-white">${k.kode}</td>
+          <td class="py-2 px-2.5 font-sans text-slate-300">${k.rute}</td>
+          <td class="py-2 px-2.5 text-right">${k.so}</td>
+          <td class="py-2 px-2.5 text-right text-[#FFD100]">${fmtNum(k.trip, 0)}</td>
+          <td class="py-2 px-2.5 text-right font-bold text-white">${fmtNum(k.km_temp, 2)} km</td>
+          <td class="py-2 px-2.5 text-right text-emerald-400">${fmtRp(k.pend)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // =========================================================================
+    // 9. TAB SWITCHING & GLOBAL RENDER ORCHESTRATION
+    // =========================================================================
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      const tabs = ['overview', 'daily', 'monthly', 'leaderboard'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById('view-' + t);
+        const btnEl = document.getElementById('tabBtn-' + t);
+        if (t === tabId) {
+          viewEl.classList.remove('hidden');
+          btnEl.className = 'tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-[#005BAC] text-white shadow';
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.className = 'tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800/60';
+        }
+      });
+      renderAll();
+    }
+
+    function renderAll() {
+      renderTopKpis();
+      if (state.activeTab === 'overview') {
+        renderOverviewTrendChart();
+        renderOverviewPoolChart();
+        renderOverviewEnergyChart();
+        renderPksQuotaBars();
+        renderMiniLeaderboard();
+      } else if (state.activeTab === 'daily') {
+        renderDailyView();
+      } else if (state.activeTab === 'monthly') {
+        renderMonthlyView();
+      } else if (state.activeTab === 'leaderboard') {
+        renderLeaderboardView();
+      }
+    }
+
+    // =========================================================================
+    // 10. EVENT LISTENERS & INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      // Tab navigation buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchTab(btn.getAttribute('data-tab'));
+        });
+      });
+
+      // Profit Mode Selector
+      document.getElementById('profitModeSelect').addEventListener('change', (e) => {
+        state.profitMode = e.target.value;
+        renderAll();
+      });
+
+      // KM Mode Selector
+      document.getElementById('kmModeSelect').addEventListener('change', (e) => {
+        state.kmMode = e.target.value;
+        renderAll();
+      });
+
+      // Pool Filter Chips
+      document.querySelectorAll('.pool-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          state.selectedPool = chip.getAttribute('data-pool');
+          document.querySelectorAll('.pool-chip').forEach(c => {
+            if (c.getAttribute('data-pool') === state.selectedPool) {
+              c.className = 'pool-chip px-3 py-1 rounded-full text-xs font-bold bg-[#005BAC] text-white';
+            } else {
+              c.className = 'pool-chip px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700';
+            }
+          });
+          renderTopKpis();
+        });
+      });
+
+      // Overview Trend Scope Buttons
+      document.getElementById('trendScopeDailyBtn').addEventListener('click', () => {
+        state.overviewTrendScope = 'daily';
+        document.getElementById('trendScopeDailyBtn').className = 'px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white';
+        document.getElementById('trendScopeMonthlyBtn').className = 'px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white';
+        renderOverviewTrendChart();
+      });
+      document.getElementById('trendScopeMonthlyBtn').addEventListener('click', () => {
+        state.overviewTrendScope = 'monthly';
+        document.getElementById('trendScopeMonthlyBtn').className = 'px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white';
+        document.getElementById('trendScopeDailyBtn').className = 'px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white';
+        renderOverviewTrendChart();
+      });
+
+      // Overview Pool Metric Buttons
+      document.getElementById('poolMetricPendBtn').addEventListener('click', () => {
+        state.poolChartMetric = 'pend';
+        document.getElementById('poolMetricPendBtn').className = 'px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white';
+        document.getElementById('poolMetricKmBtn').className = 'px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white';
+        renderOverviewPoolChart();
+      });
+      document.getElementById('poolMetricKmBtn').addEventListener('click', () => {
+        state.poolChartMetric = 'km';
+        document.getElementById('poolMetricKmBtn').className = 'px-2.5 py-1 rounded text-xs font-bold bg-[#005BAC] text-white';
+        document.getElementById('poolMetricPendBtn').className = 'px-2.5 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white';
+        renderOverviewPoolChart();
+      });
+
+      // Mini Leaderboard Toggle
+      document.getElementById('miniLeaderBusBtn').addEventListener('click', () => {
+        state.miniLeaderMode = 'bus';
+        document.getElementById('miniLeaderBusBtn').className = 'px-2 py-1 rounded text-[11px] font-bold bg-[#005BAC] text-white';
+        document.getElementById('miniLeaderKorBtn').className = 'px-2 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white';
+        renderMiniLeaderboard();
+      });
+      document.getElementById('miniLeaderKorBtn').addEventListener('click', () => {
+        state.miniLeaderMode = 'kor';
+        document.getElementById('miniLeaderKorBtn').className = 'px-2 py-1 rounded text-[11px] font-bold bg-[#005BAC] text-white';
+        document.getElementById('miniLeaderBusBtn').className = 'px-2 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white';
+        renderMiniLeaderboard();
+      });
+      document.getElementById('goFullLeaderBtn').addEventListener('click', () => {
+        switchTab('leaderboard');
+      });
+
+      // Daily Search & Sort
+      document.getElementById('dailySearchInput').addEventListener('input', (e) => {
+        state.dailySearch = e.target.value;
+        renderDailyTable();
+      });
+      document.getElementById('dailySortSelect').addEventListener('change', (e) => {
+        state.dailySort = e.target.value;
+        renderDailyTable();
+      });
+
+      // Historical Filters
+      document.getElementById('histYearSelect').addEventListener('change', (e) => {
+        state.histYear = Number(e.target.value);
+        renderMonthlyView();
+      });
+      document.getElementById('histPksSelect').addEventListener('change', (e) => {
+        state.histPks = e.target.value;
+        renderMonthlyView();
+      });
+      document.getElementById('histAreaSelect').addEventListener('change', (e) => {
+        state.histArea = e.target.value;
+        renderMonthlyView();
+      });
+
+      // Auto-Rotate TV Mode
+      document.getElementById('autoRotateBtn').addEventListener('click', () => {
+        state.autoRotate = !state.autoRotate;
+        if (state.autoRotateInterval) clearInterval(state.autoRotateInterval);
+        const textEl = document.getElementById('autoRotateText');
+        const iconEl = document.getElementById('autoRotateIcon');
+        if (state.autoRotate) {
+          textEl.textContent = 'Auto-TV: ON (12d)';
+          iconEl.textContent = '⏸';
+          const order = ['overview', 'daily', 'monthly', 'leaderboard'];
+          state.autoRotateInterval = setInterval(() => {
+            const idx = order.indexOf(state.activeTab);
+            const nextTab = order[(idx + 1) % order.length];
+            switchTab(nextTab);
+          }, 12000);
+        } else {
+          textEl.textContent = 'Auto-TV: OFF';
+          iconEl.textContent = '▶';
+        }
+      });
+
+      // Theme Toggle
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        state.darkMode = !state.darkMode;
+        const body = document.getElementById('appBody');
+        const btnText = document.getElementById('themeToggleText');
+        if (state.darkMode) {
+          body.className = 'bg-[#070D19] text-slate-100 min-h-screen transition-colors duration-300';
+          btnText.textContent = '☀️ Mode Terang';
+        } else {
+          body.className = 'bg-slate-950 text-slate-100 min-h-screen transition-colors duration-300';
+          btnText.textContent = '🌙 Mode TV Gelap';
+        }
+        renderAll();
+      });
+
+      // Live Clock Update
+      setInterval(() => {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const clockEl = document.getElementById('liveClockTime');
+        if (clockEl) clockEl.textContent = `${hh}:${mm}:${ss} WIB`;
+      }, 1000);
+
+      // Initial render
+      renderAll();
+    });
+  </script>
+</body>
+</html>
